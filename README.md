@@ -42,6 +42,11 @@ Design data structures that can map to C2PA concepts at export time while explor
 
 This repository is currently in **protocol draft + POC planning** stage.
 
+Status notes:
+- `spx-prov` is a **draft protocol**, not a production standard yet.
+- `v0.3` introduces an agent-aware profile and WebMCP binding assumptions that are **experimental and expected to evolve**.
+- Current documents are intended to support early interoperability experiments and community feedback.
+
 Available today:
 - Draft protocol (`spx-prov` v0.1, v0.2, and v0.3 profiles)
 - Data model exploration for provenance graph semantics

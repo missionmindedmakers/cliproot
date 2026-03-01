@@ -1,0 +1,12 @@
+# Default owners
+* @jasonwhitwill
+
+# Protocol drafts and standards material
+/docs/* @jasonwhitwill
+
+# Community and governance docs
+/README.md @jasonwhitwill
+/CONTRIBUTING.md @jasonwhitwill
+/SECURITY.md @jasonwhitwill
+/CODE_OF_CONDUCT.md @jasonwhitwill
+/GOVERNANCE.md @jasonwhitwill
