@@ -83,7 +83,7 @@ This allows:
 Your project could become **three things simultaneously**:
 
 1️⃣ **A product** (Next.js demo app)
-2️⃣ **An open protocol** (`@provenance/protocol`)
+2️⃣ **An open protocol** (`@cliproot/protocol`)
 3️⃣ **A standards proposal** (clipboard provenance + span attribution)
 
 Very few projects manage to do all three — but this one can.

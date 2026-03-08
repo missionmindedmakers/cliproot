@@ -242,5 +242,5 @@ If you’d like, next step could be to sketch an actual JSON‑LD schema for a �
 
 [^14]: https://www.rrkive.org/standards/ro-crate/
 
-[^15]: https://chesa.com/understanding-c2pa-enhancing-digital-content-provenance-and-authenticity/
+[^15]: https://chesa.com/understanding-c2pa-enhancing-digital-content-cliproot-and-authenticity/
 

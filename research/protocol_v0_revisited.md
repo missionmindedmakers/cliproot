@@ -81,7 +81,7 @@ Reuse notifications are policy-gated and consent-aware.
 
 ## 6. Proposed v0 Data Shape
 
-Protocol name (working): `Span Provenance Protocol` (`SPP`)  
+Protocol name (working): `ClipRoot Protocol` (`CRP`)  
 Version: `0.0.1`
 
 ```json
@@ -310,7 +310,7 @@ Recommended:
 
 ## 13. Interop Mapping Cheatsheet
 
-`SPP` to external standards:
+`CRP` to external standards:
 
 - `Span` -> PROV `Entity`
 - `Activity` -> PROV `Activity`

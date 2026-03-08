@@ -1,12 +1,12 @@
 {
-  "name": "@provenance/protocol-schema",
+  "name": "@cliproot/protocol-schema",
   "version": "0.0.1",
   "private": true,
-  "description": "Span Provenance Protocol (SPP) JSON Schema package",
+  "description": "ClipRoot Protocol (CRP) JSON Schema package",
   "license": "Apache-2.0",
   "files": [
     "README.md",
-    "spp-v0.0.1.schema.json",
+    "crp-v0.0.1.schema.json",
     "examples"
   ]
 }

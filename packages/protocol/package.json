@@ -1,0 +1,45 @@
+{
+  "name": "@cliproot/protocol",
+  "version": "0.0.1",
+  "description": "CRP v0.0.1 schema validation, typed interfaces, and hashing utilities.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": "./schema/crp-v0.0.1.schema.json",
+    "./schema/examples/crp-v0.0.1.document.example.json": "./schema/examples/crp-v0.0.1.document.example.json",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "schema",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "schema:sync": "node ./scripts/sync-schema.mjs",
+    "schema:check": "node ./scripts/sync-schema.mjs --check",
+    "build": "pnpm run schema:check && tsc -p tsconfig.json",
+    "typecheck": "pnpm run schema:check && tsc -p tsconfig.json --noEmit",
+    "test": "pnpm run schema:check && vitest run",
+    "lint": "pnpm run typecheck"
+  },
+  "dependencies": {
+    "@noble/hashes": "1.8.0",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1"
+  },
+  "devDependencies": {
+    "typescript": "5.7.3",
+    "vitest": "3.0.5"
+  }
+}

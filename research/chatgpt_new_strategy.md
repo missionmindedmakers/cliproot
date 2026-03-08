@@ -32,7 +32,7 @@ This library should have **no dependency on Tiptap, React, or databases**.
 Example package:
 
 ```
-@provenance/protocol
+@cliproot/protocol
 ```
 
 Responsibilities:
@@ -52,7 +52,7 @@ import {
   validateProvenance,
   serializeClipboardPayload,
   parseClipboardPayload
-} from "@provenance/protocol"
+} from "@cliproot/protocol"
 
 const prov = createProvenanceRecord({
   sourceType: "human",
@@ -72,7 +72,7 @@ This package becomes the **spec reference implementation**.
 Second layer:
 
 ```
-@provenance/tiptap
+@cliproot/tiptap
 ```
 
 Responsibilities:
@@ -85,7 +85,7 @@ Responsibilities:
 Example usage:
 
 ```ts
-import { AttributionExtension } from "@provenance/tiptap"
+import { AttributionExtension } from "@cliproot/tiptap"
 
 const editor = new Editor({
   extensions: [
@@ -141,7 +141,7 @@ const editor = new Editor({
     AttributionExtension.configure({
 
       resolveProvenance: async (provId) => {
-        return await fetch(`/api/provenance/${provId}`)
+        return await fetch(`/api/cliproot/${provId}`)
       },
 
       storeProvenance: async (prov) => {
@@ -210,7 +210,7 @@ This allows:
 Add a second package:
 
 ```
-@provenance/handshake
+@cliproot/handshake
 ```
 
 Defines reuse event format.
@@ -245,9 +245,9 @@ Tiny wrappers.
 Examples:
 
 ```
-@provenance/react
-@provenance/vue
-@provenance/angular
+@cliproot/react
+@cliproot/vue
+@cliproot/angular
 ```
 
 They only provide UI helpers like:
@@ -268,7 +268,7 @@ A monorepo would work well.
 Example:
 
 ```
-provenance-sdk/
+cliproot-sdk/
 
 packages/
 
@@ -355,8 +355,8 @@ This could become very powerful later.
 **v0.1**
 
 ```
-@provenance/protocol
-@provenance/tiptap
+@cliproot/protocol
+@cliproot/tiptap
 ```
 
 Features:

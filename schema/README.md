@@ -1,6 +1,6 @@
-# SPP JSON Schema Package (`v0.0.1`)
+# CRP JSON Schema Package (`v0.0.1`)
 
-This folder contains the initial JSON Schema package for **Span Provenance Protocol (SPP)**.
+This folder contains the initial JSON Schema package for **ClipRoot Protocol (CRP)**.
 
 ## Scope
 
@@ -15,8 +15,8 @@ This `v0.0.1` package intentionally stays minimal and aligns to terminology from
 
 ## Files
 
-- `spp-v0.0.1.schema.json`: canonical schema for SPP `0.0.1`
-- `examples/spp-v0.0.1.document.example.json`: valid sample `document` bundle
+- `crp-v0.0.1.schema.json`: canonical schema for CRP `0.0.1`
+- `examples/crp-v0.0.1.document.example.json`: valid sample `document` bundle
 
 ## Notes
 

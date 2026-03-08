@@ -78,22 +78,22 @@ Not yet included:
 
 Target package set (see `docs/libraries_plan.md`):
 
-1. `@provenance/spx-prov-spec`
+1. `@cliproot/spx-prov-spec`
 Protocol constants, schemas, and TypeScript types.
 
 2. TypeScript reference implementation (`spx-prov` validation + policy evaluation primitives)
 Initial canonical reference path for rapid protocol iteration and adoption.
 
-3. `@provenance/spx-prov-tiptap`
+3. `@cliproot/spx-prov-tiptap`
 Tiptap/ProseMirror interop package for attribution marks and clipboard behavior.
 
-4. `@provenance/spx-prov-conformance` (recommended)
+4. `@cliproot/spx-prov-conformance` (recommended)
 Shared vectors/harness for implementation verification.
 
 5. `spx-prov-core` (Rust, phased)
 Introduced in parallel for hot/correctness-critical paths; promoted to canonical when vectors stabilize and cross-language parity requirements justify the overhead.
 
-6. `@provenance/spx-prov-node` and `spx_prov` (Python, phased)
+6. `@cliproot/spx-prov-node` and `spx_prov` (Python, phased)
 Bindings over Rust core when/if Rust promotion is adopted.
 
 ## Sample App Scope
@@ -156,11 +156,11 @@ This is the recommended order of implementation work:
 2. **Publish conformance vectors**
    - Add language-neutral test vectors for clipboard, transfer claims/receipts, permission, and tool-call paths.
    - Define expected outcomes and reason codes for each vector.
-3. **Ship `@provenance/spx-prov-spec`**
+3. **Ship `@cliproot/spx-prov-spec`**
    - Publish constants, TypeScript types, and schema loading/validation helpers.
 4. **Ship TypeScript reference implementation**
    - Implement canonicalization, `textHash`, envelope validation, and policy evaluation primitives.
-5. **Build `@provenance/spx-prov-tiptap` integration**
+5. **Build `@cliproot/spx-prov-tiptap` integration**
    - Implement attribution marks plus clipboard MIME export/import behavior.
 6. **Deliver sample app Phase 1 (protocol-visible MVP)**
    - Two simulated instance views (`Alice` + `Bob`) with copy/paste exchange.
@@ -176,7 +176,7 @@ This is the recommended order of implementation work:
    - Benchmark high-history/high-span workloads and compare against target latency budgets.
    - Promote `spx-prov-core` only if conformance/performance/cross-language goals justify added complexity.
 10. **If promoted: ship phased Rust bindings**
-   - Add `@provenance/spx-prov-node` and `spx_prov` bindings with vector parity checks in CI.
+   - Add `@cliproot/spx-prov-node` and `spx_prov` bindings with vector parity checks in CI.
 
 ## Project Tracking (GitHub Issues)
 

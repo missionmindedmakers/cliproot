@@ -247,7 +247,7 @@ Each provenance record gets a public page:
 
 ```
 
-/provenance/prov_xxx
+/cliproot/prov_xxx
 
 ```
 
@@ -381,7 +381,7 @@ This section sketches a minimal but functional implementation of the attribution
 
 ```
 
-@provenance/tiptap
+@cliproot/tiptap
 
 ````
 
@@ -549,7 +549,7 @@ Because the extension has no framework dependency, it works the same everywhere.
 ```ts
 import { Editor } from '@tiptap/core'
 import StarterKit from '@tiptap/starter-kit'
-import { AttributionExtension } from '@provenance/tiptap'
+import { AttributionExtension } from '@cliproot/tiptap'
 
 const editor = new Editor({
   extensions: [
@@ -558,7 +558,7 @@ const editor = new Editor({
     AttributionExtension.configure({
 
       resolveProvenance: async (id) => {
-        return fetch(`/api/provenance/${id}`)
+        return fetch(`/api/cliproot/${id}`)
       },
 
       onReuseDetected: async (event) 

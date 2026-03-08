@@ -1,6 +1,6 @@
 Nice — below is a production-ready JSON Schema (vocab: draft-2020-12 style) for the provenance protocol we sketched. It covers users, documents, canonical provenance records, span attributions, reuse/handshake events, clipboard bundles, and signatures.
 
-This spec is intentionally database- and UI-agnostic so it can be used by integrations with editors such as Tiptap, apps built on Next.js deployed to platforms like Vercel, backends using ORMs such as Drizzle, and auth systems like BetterAuth. It’s also designed so it can map to formal provenance/claim systems such as the Coalition for Content Provenance and Authenticity model in later iterations, and can later be extended for CRDT integrations like Yjs.
+This spec is intentionally database- and UI-agnostic so it can be used by integrations with editors such as Tiptap, apps built on Next.js deployed to platforms like Vercel, backends using ORMs such as Drizzle, and auth systems like BetterAuth. It’s also designed so it can map to formal cliproot/claim systems such as the Coalition for Content Provenance and Authenticity model in later iterations, and can later be extended for CRDT integrations like Yjs.
 
 ---
 
@@ -9,7 +9,7 @@ This spec is intentionally database- and UI-agnostic so it can be used by integr
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.org/schemas/provenance-protocol.v0.1.json",
+  "$id": "https://example.org/schemas/cliproot-protocol.v0.1.json",
   "title": "Provenance Protocol — Root Schema",
   "description": "Root schema container. See $defs for domain types: User, Document, ProvenanceRecord, SpanAttribution, ReuseEvent, ClipboardBundle, Signature.",
   "type": "object",

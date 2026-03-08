@@ -22,10 +22,10 @@ Resulting strategy:
 
 Monorepo target:
 
-- `@provenance/protocol` (core schema, validation, hashing, MIME serialization, event models)
-- `@provenance/tiptap` (editor extension for marks, copy/paste hooks, span attribution commands)
-- `@provenance/handshake` (reuse event emission/verification helpers)
-- Optional adapters: `@provenance/react`, `@provenance/vue`, `@provenance/angular`
+- `@cliproot/protocol` (core schema, validation, hashing, MIME serialization, event models)
+- `@cliproot/tiptap` (editor extension for marks, copy/paste hooks, span attribution commands)
+- `@cliproot/handshake` (reuse event emission/verification helpers)
+- Optional adapters: `@cliproot/react`, `@cliproot/vue`, `@cliproot/angular`
 
 Design constraint:
 
@@ -62,7 +62,7 @@ Adopt this model in protocol docs, APIs, and DB naming (UI labels can remain use
 - `Entity` (PROV Entity): span or source artifact
 - `Activity` (PROV Activity): create/paste/import/edit/ai_generate/etc.
 - `Span`: attributed text entity in a document
-- `SourceRecord`: canonical origin metadata record (replaces generic provenance-record naming in protocol-facing surfaces)
+- `SourceRecord`: canonical origin metadata record (replaces generic cliproot-record naming in protocol-facing surfaces)
 - `ReuseEvent`: destination-side downstream-use record
 
 Recommended `sourceType` values for v0:
@@ -108,11 +108,11 @@ Important implementation stance:
 
 ---
 
-## 5) Protocol Profile (SPP v0.0.1)
+## 5) Protocol Profile (CRP v0.0.1)
 
 Working protocol:
 
-- Name: `Span Provenance Protocol` (`SPP`)
+- Name: `ClipRoot Protocol` (`CRP`)
 - Version: `0.0.1`
 - Bundle types: `document | clipboard | reuse-event`
 
@@ -269,7 +269,7 @@ Recommended cloud controls:
 
 ### Phase 1 (Weeks 1-4): Core attribution in cloud app + protocol package
 
-1. implement SPP v0.0.1 core schema + validation in `@provenance/protocol`
+1. implement CRP v0.0.1 core schema + validation in `@cliproot/protocol`
 2. launch cloud auth/documents/editor with span/source persistence
 3. support missing-provenance prompt and base visual rendering
 
@@ -280,7 +280,7 @@ Exit criteria:
 
 ### Phase 2 (Weeks 5-8): Clipboard interop + reuse events
 
-1. implement clipboard MIME read/write in `@provenance/tiptap`
+1. implement clipboard MIME read/write in `@cliproot/tiptap`
 2. emit and persist `ReuseEvent` on import/paste
 3. add notification dispatcher and source-side inbox/dashboard
 
@@ -325,7 +325,7 @@ Exit criteria:
 
 ## 12) Immediate Next Build Artifacts
 
-1. `spp-v0.0.1` JSON schema package with TS types and validators
+1. `crp-v0.0.1` JSON schema package with TS types and validators
 2. Tiptap extension that emits protocol-native span/activity/reuse payloads
 3. Drizzle migrations aligned to `Agent/SourceRecord/Span/Activity/ReuseEvent`
 4. cloud workflow demo:

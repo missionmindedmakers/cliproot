@@ -1,0 +1,65 @@
+{
+  "protocolVersion": "0.0.1",
+  "bundleType": "document",
+  "createdAt": "2026-03-07T20:30:00Z",
+  "document": {
+    "id": "doc_01",
+    "uri": "https://example.com/docs/doc_01",
+    "title": "Sample Attributed Document",
+    "canonicalHash": "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+  },
+  "agents": [
+    {
+      "id": "agent_alice",
+      "agentType": "person",
+      "name": "Alice"
+    }
+  ],
+  "sources": [
+    {
+      "id": "src_01",
+      "sourceType": "human-authored",
+      "title": "Original Draft",
+      "sourceUri": "https://example.com/source/original",
+      "authorAgentId": "agent_alice",
+      "createdAt": "2026-03-07T20:00:00Z"
+    }
+  ],
+  "spans": [
+    {
+      "id": "span_01",
+      "documentId": "doc_01",
+      "sourceRefs": [
+        "src_01"
+      ],
+      "selectors": {
+        "textPosition": {
+          "start": 0,
+          "end": 23
+        },
+        "textQuote": {
+          "exact": "Provenance starts here."
+        },
+        "editorPath": "0/0/0"
+      },
+      "textHash": "sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+      "createdByActivityId": "act_01"
+    }
+  ],
+  "activities": [
+    {
+      "id": "act_01",
+      "activityType": "create",
+      "agentId": "agent_alice",
+      "usedSourceRefs": [
+        "src_01"
+      ],
+      "generatedSpanRefs": [
+        "span_01"
+      ],
+      "createdAt": "2026-03-07T20:01:00Z"
+    }
+  ],
+  "reuseEvents": [],
+  "signatures": []
+}
