@@ -11,11 +11,7 @@
     },
     "bundleType": {
       "type": "string",
-      "enum": [
-        "document",
-        "clipboard",
-        "reuse-event"
-      ]
+      "enum": ["document", "clipboard", "reuse-event"]
     },
     "createdAt": {
       "$ref": "#/$defs/dateTime"
@@ -66,11 +62,7 @@
       "default": []
     }
   },
-  "required": [
-    "protocolVersion",
-    "bundleType",
-    "createdAt"
-  ],
+  "required": ["protocolVersion", "bundleType", "createdAt"],
   "$defs": {
     "id": {
       "type": "string",
@@ -107,9 +99,7 @@
           "$ref": "#/$defs/sha256Base64Url"
         }
       },
-      "required": [
-        "id"
-      ]
+      "required": ["id"]
     },
     "agent": {
       "type": "object",
@@ -120,13 +110,7 @@
         },
         "agentType": {
           "type": "string",
-          "enum": [
-            "person",
-            "organization",
-            "model",
-            "service",
-            "system"
-          ]
+          "enum": ["person", "organization", "model", "service", "system"]
         },
         "name": {
           "type": "string"
@@ -135,10 +119,7 @@
           "$ref": "#/$defs/uri"
         }
       },
-      "required": [
-        "id",
-        "agentType"
-      ]
+      "required": ["id", "agentType"]
     },
     "sourceRecord": {
       "type": "object",
@@ -149,13 +130,7 @@
         },
         "sourceType": {
           "type": "string",
-          "enum": [
-            "human-authored",
-            "ai-generated",
-            "ai-assisted",
-            "external-quoted",
-            "unknown"
-          ]
+          "enum": ["human-authored", "ai-generated", "ai-assisted", "external-quoted", "unknown"]
         },
         "digitalSourceType": {
           "$ref": "#/$defs/uri"
@@ -173,10 +148,7 @@
           "$ref": "#/$defs/dateTime"
         }
       },
-      "required": [
-        "id",
-        "sourceType"
-      ]
+      "required": ["id", "sourceType"]
     },
     "textPositionSelector": {
       "type": "object",
@@ -191,10 +163,7 @@
           "minimum": 0
         }
       },
-      "required": [
-        "start",
-        "end"
-      ]
+      "required": ["start", "end"]
     },
     "textQuoteSelector": {
       "type": "object",
@@ -210,9 +179,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "exact"
-      ]
+      "required": ["exact"]
     },
     "domSelector": {
       "type": "object",
@@ -247,19 +214,13 @@
         },
         "track": {
           "type": "string",
-          "enum": [
-            "audio",
-            "video"
-          ]
+          "enum": ["audio", "video"]
         },
         "transcriptCueId": {
           "type": "string"
         }
       },
-      "required": [
-        "startMs",
-        "endMs"
-      ]
+      "required": ["startMs", "endMs"]
     },
     "clip": {
       "type": "object",
@@ -299,10 +260,7 @@
               "$ref": "#/$defs/mediaTimeSelector"
             }
           },
-          "required": [
-            "textPosition",
-            "textQuote"
-          ]
+          "required": ["textPosition", "textQuote"]
         },
         "textHash": {
           "$ref": "#/$defs/sha256Base64Url"
@@ -311,12 +269,7 @@
           "$ref": "#/$defs/id"
         }
       },
-      "required": [
-        "id",
-        "sourceRefs",
-        "selectors",
-        "textHash"
-      ]
+      "required": ["id", "sourceRefs", "selectors", "textHash"]
     },
     "activity": {
       "type": "object",
@@ -358,11 +311,7 @@
           "$ref": "#/$defs/dateTime"
         }
       },
-      "required": [
-        "id",
-        "activityType",
-        "createdAt"
-      ]
+      "required": ["id", "activityType", "createdAt"]
     },
     "reuseEvent": {
       "type": "object",
@@ -373,12 +322,7 @@
         },
         "status": {
           "type": "string",
-          "enum": [
-            "detected",
-            "notified",
-            "acknowledged",
-            "rejected"
-          ]
+          "enum": ["detected", "notified", "acknowledged", "rejected"]
         },
         "sourceDocumentId": {
           "$ref": "#/$defs/id"
@@ -399,12 +343,7 @@
           "$ref": "#/$defs/dateTime"
         }
       },
-      "required": [
-        "id",
-        "status",
-        "sourceRef",
-        "createdAt"
-      ]
+      "required": ["id", "status", "sourceRef", "createdAt"]
     },
     "signature": {
       "type": "object",
@@ -415,11 +354,7 @@
         },
         "alg": {
           "type": "string",
-          "enum": [
-            "Ed25519",
-            "ES256",
-            "RS256"
-          ]
+          "enum": ["Ed25519", "ES256", "RS256"]
         },
         "kid": {
           "type": "string"
@@ -431,11 +366,7 @@
           "$ref": "#/$defs/dateTime"
         }
       },
-      "required": [
-        "id",
-        "alg",
-        "jws"
-      ]
+      "required": ["id", "alg", "jws"]
     }
   }
 }

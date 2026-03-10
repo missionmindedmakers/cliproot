@@ -29,9 +29,7 @@
     {
       "id": "clip_01",
       "documentId": "doc_01",
-      "sourceRefs": [
-        "src_01"
-      ],
+      "sourceRefs": ["src_01"],
       "selectors": {
         "textPosition": {
           "start": 0,
@@ -55,12 +53,8 @@
       "id": "act_01",
       "activityType": "create",
       "agentId": "agent_alice",
-      "usedSourceRefs": [
-        "src_01"
-      ],
-      "generatedClipRefs": [
-        "clip_01"
-      ],
+      "usedSourceRefs": ["src_01"],
+      "generatedClipRefs": ["clip_01"],
       "createdAt": "2026-03-07T20:01:00Z"
     }
   ],
