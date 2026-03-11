@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://cliproot.com/schema/crp-v0.0.1.schema.json",
   "title": "ClipRoot Protocol (CRP) v0.0.1",
-  "description": "Minimal protocol bundle schema for document, clipboard, and reuse-event exchanges.",
+  "description": "Minimal protocol bundle schema for document, clipboard, and reuse-event exchanges. Clips are content-addressed (clipHash) enabling offline verification and decentralized lineage chains. Registries are optional accelerators for discovery, not dependencies.",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -60,6 +60,9 @@
         "$ref": "#/$defs/signature"
       },
       "default": []
+    },
+    "registry": {
+      "$ref": "#/$defs/registryRef"
     }
   },
   "required": ["protocolVersion", "bundleType", "createdAt"],
@@ -222,12 +225,43 @@
       },
       "required": ["startMs", "endMs"]
     },
+    "clipRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "A reference to a parent or source clip by its content-addressed hash. Enables offline-verifiable lineage chains without requiring a registry.",
+      "properties": {
+        "clipHash": {
+          "$ref": "#/$defs/sha256Base64Url"
+        }
+      },
+      "required": ["clipHash"]
+    },
+    "registryRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional declaration of a registry where this bundle is indexed. Registries are accelerators for discovery and citation graphs — the clip remains self-verifiable without them.",
+      "properties": {
+        "uri": {
+          "$ref": "#/$defs/uri"
+        },
+        "bundleId": {
+          "type": "string"
+        }
+      },
+      "required": ["uri"]
+    },
     "clip": {
       "type": "object",
       "additionalProperties": false,
+      "description": "A content-addressed unit of provenance. clipHash is the global identity derived from the clip's canonical content (textHash + selectors + sourceRefs + derivedFrom). id is an optional local alias for intra-bundle cross-referencing.",
       "properties": {
+        "clipHash": {
+          "$ref": "#/$defs/sha256Base64Url",
+          "description": "Content-addressed hash of the canonical clip object. This is the global identity of the clip — verifiable offline without any registry."
+        },
         "id": {
-          "$ref": "#/$defs/id"
+          "$ref": "#/$defs/id",
+          "description": "Optional local alias for referencing this clip within a bundle (e.g. from activities.generatedClipRefs or reuseEvents.sourceRef)."
         },
         "documentId": {
           "$ref": "#/$defs/id"
@@ -260,16 +294,29 @@
               "$ref": "#/$defs/mediaTimeSelector"
             }
           },
-          "required": ["textPosition", "textQuote"]
+          "required": ["textQuote"]
+        },
+        "content": {
+          "type": "string",
+          "description": "Optional embedded text content of the clip. When present alongside clipHash, the clip is fully self-contained and verifiable without the source document."
         },
         "textHash": {
           "$ref": "#/$defs/sha256Base64Url"
+        },
+        "derivedFrom": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/clipRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "Lineage chain linking this clip to its parent or source clips by content-addressed hash. Enables Merkle-like provenance graphs verifiable without a registry."
         },
         "createdByActivityId": {
           "$ref": "#/$defs/id"
         }
       },
-      "required": ["id", "sourceRefs", "selectors", "textHash"]
+      "required": ["clipHash", "sourceRefs", "selectors", "textHash"]
     },
     "activity": {
       "type": "object",

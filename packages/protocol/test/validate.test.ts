@@ -178,6 +178,206 @@ describe('validateBundle', () => {
       true
     )
   })
+
+  // --- Hybrid model: clipHash (decentralized identity) ---
+
+  it('requires clipHash on every clip', () => {
+    const bundle = readFixture()
+    const firstClip = bundle.clips?.[0]
+    if (!firstClip) {
+      throw new Error('Fixture missing first clip.')
+    }
+
+    const { clipHash: _removed, ...clipWithoutHash } = firstClip as typeof firstClip & {
+      clipHash: string
+    }
+
+    const result = validateBundle({
+      ...bundle,
+      clips: [clipWithoutHash]
+    })
+
+    expect(result.ok).toBe(false)
+    if (result.ok) {
+      return
+    }
+
+    expect(result.errors.some((issue) => issue.instancePath.endsWith('/clipHash'))).toBe(true)
+  })
+
+  it('rejects malformed clipHash', () => {
+    const bundle = readFixture()
+    const result = validateBundle({
+      ...bundle,
+      clips: bundle.clips?.map((clip, index) =>
+        index === 0
+          ? {
+              ...clip,
+              clipHash: 'not-a-valid-hash'
+            }
+          : clip
+      )
+    })
+
+    expect(result.ok).toBe(false)
+    if (result.ok) {
+      return
+    }
+
+    expect(result.errors.some((issue) => issue.instancePath.endsWith('/clipHash'))).toBe(true)
+  })
+
+  it('accepts a clip with only textQuote selector (textPosition optional)', () => {
+    const bundle = readFixture()
+    const firstClip = bundle.clips?.[0]
+    if (!firstClip) {
+      throw new Error('Fixture missing first clip.')
+    }
+
+    const result = validateBundle({
+      ...bundle,
+      clips: [
+        {
+          ...firstClip,
+          selectors: {
+            textQuote: { exact: 'Provenance starts here.' }
+          }
+        }
+      ]
+    })
+
+    expect(result.ok).toBe(true)
+  })
+
+  it('accepts a clip with embedded content field', () => {
+    const bundle = readFixture()
+    const firstClip = bundle.clips?.[0]
+    if (!firstClip) {
+      throw new Error('Fixture missing first clip.')
+    }
+
+    const result = validateBundle({
+      ...bundle,
+      clips: [
+        {
+          ...firstClip,
+          content: 'Provenance starts here.'
+        }
+      ]
+    })
+
+    expect(result.ok).toBe(true)
+  })
+
+  it('accepts a clip with derivedFrom lineage chain', () => {
+    const bundle = readFixture()
+    const firstClip = bundle.clips?.[0]
+    if (!firstClip) {
+      throw new Error('Fixture missing first clip.')
+    }
+
+    const result = validateBundle({
+      ...bundle,
+      clips: [
+        {
+          ...firstClip,
+          derivedFrom: [
+            { clipHash: 'sha256-ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ' }
+          ]
+        }
+      ]
+    })
+
+    expect(result.ok).toBe(true)
+  })
+
+  it('rejects a derivedFrom entry with malformed clipHash', () => {
+    const bundle = readFixture()
+    const firstClip = bundle.clips?.[0]
+    if (!firstClip) {
+      throw new Error('Fixture missing first clip.')
+    }
+
+    const result = validateBundle({
+      ...bundle,
+      clips: [
+        {
+          ...firstClip,
+          derivedFrom: [{ clipHash: 'bad-hash' }]
+        }
+      ]
+    })
+
+    expect(result.ok).toBe(false)
+    if (result.ok) {
+      return
+    }
+
+    expect(
+      result.errors.some((issue) => issue.instancePath.includes('derivedFrom'))
+    ).toBe(true)
+  })
+
+  // --- Hybrid model: optional registry ---
+
+  it('accepts a bundle with an optional registry declaration', () => {
+    const bundle = readFixture()
+    const result = validateBundle({
+      ...bundle,
+      registry: {
+        uri: 'https://registry.cliproot.org',
+        bundleId: 'bundle_doc_01'
+      }
+    })
+
+    expect(result.ok).toBe(true)
+  })
+
+  it('accepts a bundle without a registry (registry is optional)', () => {
+    const bundle = readFixture()
+    const { registry: _removed, ...bundleWithoutRegistry } = bundle as typeof bundle & {
+      registry: unknown
+    }
+
+    const result = validateBundle(bundleWithoutRegistry)
+    expect(result.ok).toBe(true)
+  })
+
+  it('rejects a registry entry missing required uri', () => {
+    const bundle = readFixture()
+    const result = validateBundle({
+      ...bundle,
+      registry: {
+        bundleId: 'bundle_doc_01'
+      }
+    })
+
+    expect(result.ok).toBe(false)
+    if (result.ok) {
+      return
+    }
+
+    expect(result.errors.some((issue) => issue.instancePath.includes('registry'))).toBe(true)
+  })
+
+  // --- clip id is now optional ---
+
+  it('accepts a clip without an id (id is optional local alias)', () => {
+    const bundle = readFixture()
+    const firstClip = bundle.clips?.[0]
+    if (!firstClip) {
+      throw new Error('Fixture missing first clip.')
+    }
+
+    const { id: _removed, ...clipWithoutId } = firstClip as typeof firstClip & { id: string }
+
+    const result = validateBundle({
+      ...bundle,
+      clips: [clipWithoutId]
+    })
+
+    expect(result.ok).toBe(true)
+  })
 })
 
 describe('parseBundle', () => {

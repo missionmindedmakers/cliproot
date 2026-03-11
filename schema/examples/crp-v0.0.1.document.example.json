@@ -2,6 +2,10 @@
   "protocolVersion": "0.0.1",
   "bundleType": "document",
   "createdAt": "2026-03-07T20:30:00Z",
+  "registry": {
+    "uri": "https://registry.cliproot.org",
+    "bundleId": "bundle_doc_01"
+  },
   "document": {
     "id": "doc_01",
     "uri": "https://example.com/docs/doc_01",
@@ -27,6 +31,7 @@
   ],
   "clips": [
     {
+      "clipHash": "sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
       "id": "clip_01",
       "documentId": "doc_01",
       "sourceRefs": ["src_01"],
@@ -44,8 +49,30 @@
           "classPath": "article-body p.lede"
         }
       },
-      "textHash": "sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+      "content": "Provenance starts here.",
+      "textHash": "sha256-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
       "createdByActivityId": "act_01"
+    },
+    {
+      "clipHash": "sha256-DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+      "id": "clip_02",
+      "documentId": "doc_01",
+      "sourceRefs": ["src_01"],
+      "selectors": {
+        "textQuote": {
+          "exact": "Provenance starts here, and this clip derives from clip_01.",
+          "prefix": "Introduction: ",
+          "suffix": " End."
+        }
+      },
+      "content": "Provenance starts here, and this clip derives from clip_01.",
+      "textHash": "sha256-EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+      "derivedFrom": [
+        {
+          "clipHash": "sha256-BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+        }
+      ],
+      "createdByActivityId": "act_02"
     }
   ],
   "activities": [
@@ -56,6 +83,14 @@
       "usedSourceRefs": ["src_01"],
       "generatedClipRefs": ["clip_01"],
       "createdAt": "2026-03-07T20:01:00Z"
+    },
+    {
+      "id": "act_02",
+      "activityType": "edit",
+      "agentId": "agent_alice",
+      "usedSourceRefs": ["src_01"],
+      "generatedClipRefs": ["clip_02"],
+      "createdAt": "2026-03-07T20:05:00Z"
     }
   ],
   "reuseEvents": [],
