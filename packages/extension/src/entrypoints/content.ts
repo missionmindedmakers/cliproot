@@ -1,4 +1,4 @@
-import { captureSelection, buildClipboardBundle, writeProvenanceToClipboard } from '@cliproot/core'
+import { captureSelection, buildClipboardBundle, writeProvenanceToClipboard, writeCustomFormatToClipboard } from '@cliproot/core'
 import type { CapturedSelection } from '@cliproot/core'
 import type { CrpBundle } from '@cliproot/protocol'
 
@@ -6,18 +6,32 @@ export default defineContentScript({
   matches: ['<all_urls>'],
   runAt: 'document_start',
   main() {
-    let enabled = true
+    let globalEnabled = true
+    let siteOverride: boolean | 'default' = 'default'
     let pendingCapture: { captured: CapturedSelection; bundle: CrpBundle } | null = null
     let bubbleListenerFired = false
 
+    function isEnabled(): boolean {
+      if (siteOverride !== 'default') return siteOverride as boolean
+      return globalEnabled
+    }
+
     // Sync enabled state from storage
-    chrome.storage.local.get('enabled', (result: Record<string, unknown>) => {
-      enabled = result.enabled !== false // default true
+    chrome.storage.local.get(['enabled', 'siteSettings'], (result: Record<string, unknown>) => {
+      globalEnabled = result.enabled !== false
+      const siteSettings = (result.siteSettings ?? {}) as Record<string, boolean | 'default'>
+      const hostname = location.hostname
+      siteOverride = hostname in siteSettings ? siteSettings[hostname] : 'default'
     })
 
     chrome.storage.onChanged.addListener((changes: Record<string, chrome.storage.StorageChange>) => {
       if (changes.enabled) {
-        enabled = changes.enabled.newValue !== false
+        globalEnabled = changes.enabled.newValue !== false
+      }
+      if (changes.siteSettings) {
+        const siteSettings = (changes.siteSettings.newValue ?? {}) as Record<string, boolean | 'default'>
+        const hostname = location.hostname
+        siteOverride = hostname in siteSettings ? siteSettings[hostname] : 'default'
       }
     })
 
@@ -25,7 +39,7 @@ export default defineContentScript({
     document.addEventListener(
       'copy',
       (event: ClipboardEvent) => {
-        if (!enabled) return
+        if (!isEnabled()) return
 
         bubbleListenerFired = false
         pendingCapture = null
@@ -58,7 +72,7 @@ export default defineContentScript({
     document.addEventListener(
       'copy',
       (event: ClipboardEvent) => {
-        if (!enabled || !pendingCapture || !event.clipboardData) return
+        if (!isEnabled() || !pendingCapture || !event.clipboardData) return
 
         bubbleListenerFired = true
 
@@ -71,6 +85,12 @@ export default defineContentScript({
         writeProvenanceToClipboard(pendingCapture.bundle, event.clipboardData)
         event.preventDefault()
 
+        // Attempt async write with custom MIME type (fire-and-forget)
+        const augmentedHtml = event.clipboardData.getData('text/html')
+        const plainText = event.clipboardData.getData('text/plain')
+        const bundle = pendingCapture.bundle
+        writeCustomFormatToClipboard(bundle, plainText, augmentedHtml)
+
         pendingCapture = null
       },
       { capture: false }
@@ -81,7 +101,7 @@ export default defineContentScript({
     document.addEventListener(
       'copy',
       () => {
-        if (!enabled || !pendingCapture) return
+        if (!isEnabled() || !pendingCapture) return
 
         const bundle = pendingCapture.bundle
 
@@ -105,12 +125,25 @@ export default defineContentScript({
               ? await existing.getType('text/plain')
               : new Blob([''], { type: 'text/plain' })
 
-            await navigator.clipboard.write([
-              new ClipboardItem({
-                'text/plain': textBlob,
-                'text/html': new Blob([finalHtml], { type: 'text/html' }),
-              }),
-            ])
+            const plainText = await textBlob.text()
+
+            const clipboardItem: Record<string, Blob> = {
+              'text/plain': textBlob,
+              'text/html': new Blob([finalHtml], { type: 'text/html' }),
+            }
+
+            // Include custom MIME if supported
+            if (
+              typeof ClipboardItem !== 'undefined' &&
+              ClipboardItem.supports?.('web application/x-cliproot+json')
+            ) {
+              clipboardItem['web application/x-cliproot+json'] = new Blob(
+                [JSON.stringify(bundle)],
+                { type: 'application/json' }
+              )
+            }
+
+            await navigator.clipboard.write([new ClipboardItem(clipboardItem)])
           } catch {
             // Best-effort — async clipboard API may not be available
           }

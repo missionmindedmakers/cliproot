@@ -79,6 +79,10 @@ importers:
         version: 3.0.5(@types/node@25.5.0)(happy-dom@17.6.3)(jiti@2.6.1)
 
   packages/tiptap:
+    dependencies:
+      '@cliproot/protocol':
+        specifier: workspace:*
+        version: link:../protocol
     devDependencies:
       '@tiptap/core':
         specifier: ^2.11.5
