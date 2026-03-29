@@ -4,7 +4,7 @@ import { EditorView } from 'prosemirror-view'
 export const clipboardPluginKey = new PluginKey('attributionClipboard')
 
 export function createClipboardPlugin(options: {
-  onReuseDetected?: (event: { provenanceId: string }) => void
+  onClipsDetected?: (event: { clipHashes: string[] }) => void
 }) {
   return new Plugin({
     key: clipboardPluginKey,
@@ -18,23 +18,23 @@ export function createClipboardPlugin(options: {
           const { from, to } = state.selection
 
           const slice = state.doc.slice(from, to)
-          const provenance: string[] = []
+          const clipHashes: string[] = []
 
           slice.content.descendants((node) => {
             node.marks.forEach((mark) => {
-              if (mark.type.name === 'attribution' && mark.attrs.provId) {
-                provenance.push(mark.attrs.provId)
+              if (mark.type.name === 'attribution' && mark.attrs.clipHash) {
+                clipHashes.push(mark.attrs.clipHash)
               }
             })
           })
 
-          if (provenance.length > 0) {
+          if (clipHashes.length > 0) {
             const payload = {
               version: 1,
-              provenance: Array.from(new Set(provenance))
+              clipHashes: Array.from(new Set(clipHashes))
             }
 
-            event.clipboardData.setData('application/x-provenance+json', JSON.stringify(payload))
+            event.clipboardData.setData('application/x-cliproot+json', JSON.stringify(payload))
           }
 
           return false
@@ -44,22 +44,19 @@ export function createClipboardPlugin(options: {
           const event = e as ClipboardEvent
           if (!event.clipboardData) return false
 
-          const data = event.clipboardData.getData('application/x-provenance+json')
+          const data = event.clipboardData.getData('application/x-cliproot+json')
 
           if (!data) return false
 
           try {
             const payload = JSON.parse(data)
+            const hashes: string[] = payload.clipHashes ?? payload.provenance
 
-            if (payload.provenance && Array.isArray(payload.provenance)) {
-              payload.provenance.forEach((provId: string) => {
-                if (options.onReuseDetected) {
-                  options.onReuseDetected({ provenanceId: provId })
-                }
-              })
+            if (Array.isArray(hashes) && hashes.length > 0 && options.onClipsDetected) {
+              options.onClipsDetected({ clipHashes: hashes })
             }
           } catch (err) {
-            console.error('Failed to parse provenance clipboard data', err)
+            console.error('Failed to parse cliproot clipboard data', err)
           }
 
           return false

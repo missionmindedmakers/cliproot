@@ -27,14 +27,21 @@ interface BundleStore {
   selectedClipHash: string | null
 
   /** View mode for the main panel */
-  view: 'detail' | 'dag'
+  view: 'detail' | 'dag' | 'editor'
+
+  /**
+   * Callback registered by ClipEditor when mounted.
+   * Inserts a clip's content into the editor at the cursor with attribution.
+   */
+  insertClipIntoEditor: ((clipHash: string) => void) | null
 
   /** Actions */
   addBundle: (key: string, bundle: CrpBundle) => void
   addBundles: (entries: [string, CrpBundle][]) => void
   removeBundle: (key: string) => void
   selectClip: (hash: string | null) => void
-  setView: (view: 'detail' | 'dag') => void
+  setView: (view: 'detail' | 'dag' | 'editor') => void
+  setInsertClipHandler: (handler: ((clipHash: string) => void) | null) => void
   clearAll: () => void
 }
 
@@ -59,6 +66,7 @@ export const useBundleStore = create<BundleStore>((set) => ({
   ...emptyMerged(),
   selectedClipHash: null,
   view: 'detail',
+  insertClipIntoEditor: null,
 
   addBundle: (key, bundle) =>
     set((state) => {
@@ -86,6 +94,8 @@ export const useBundleStore = create<BundleStore>((set) => ({
   selectClip: (hash) => set({ selectedClipHash: hash }),
 
   setView: (view) => set({ view }),
+
+  setInsertClipHandler: (handler) => set({ insertClipIntoEditor: handler }),
 
   clearAll: () =>
     set({

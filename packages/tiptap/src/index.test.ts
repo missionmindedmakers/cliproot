@@ -6,7 +6,14 @@ describe('AttributionExtension', () => {
     expect(AttributionExtension.name).toBe('attribution')
   })
 
-  it('can be configured with options', () => {
+  it('can be configured with onClipsDetected', () => {
+    const extension = AttributionExtension.configure({
+      onClipsDetected: () => {}
+    })
+    expect(extension.options.onClipsDetected).toBeDefined()
+  })
+
+  it('supports deprecated onReuseDetected option', () => {
     const extension = AttributionExtension.configure({
       onReuseDetected: () => {}
     })

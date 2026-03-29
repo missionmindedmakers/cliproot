@@ -1,16 +1,18 @@
 import { Mark, mergeAttributes } from '@tiptap/core'
 import { createClipboardPlugin } from './clipboard.js'
 
+export type SourceType = 'human-authored' | 'ai-generated' | 'ai-assisted' | 'external-quoted' | 'unknown'
+
 export interface AttributionOptions {
-  resolveProvenance?: (id: string) => Promise<any>
-  storeProvenance?: (prov: any) => Promise<string>
+  onClipsDetected?: (event: { clipHashes: string[] }) => void
+  /** @deprecated Use onClipsDetected */
   onReuseDetected?: (event: { provenanceId: string }) => void
 }
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     attribution: {
-      setAttribution: (provId: string) => ReturnType
+      setAttribution: (clipHash: string, sourceType?: SourceType) => ReturnType
       unsetAttribution: () => ReturnType
     }
   }
@@ -25,15 +27,20 @@ export const AttributionExtension = Mark.create<AttributionOptions>({
 
   addAttributes() {
     return {
-      provId: {
+      clipHash: {
         default: null,
-        parseHTML: (element) => element.getAttribute('data-prov-id'),
+        parseHTML: (element) => element.getAttribute('data-clip-hash'),
         renderHTML: (attributes) => {
-          if (!attributes.provId) return {}
-
-          return {
-            'data-prov-id': attributes.provId
-          }
+          if (!attributes.clipHash) return {}
+          return { 'data-clip-hash': attributes.clipHash }
+        }
+      },
+      sourceType: {
+        default: null,
+        parseHTML: (element) => element.getAttribute('data-source-type'),
+        renderHTML: (attributes) => {
+          if (!attributes.sourceType) return {}
+          return { 'data-source-type': attributes.sourceType }
         }
       }
     }
@@ -42,7 +49,7 @@ export const AttributionExtension = Mark.create<AttributionOptions>({
   parseHTML() {
     return [
       {
-        tag: 'span[data-prov-id]'
+        tag: 'span[data-clip-hash]'
       }
     ]
   },
@@ -54,9 +61,9 @@ export const AttributionExtension = Mark.create<AttributionOptions>({
   addCommands() {
     return {
       setAttribution:
-        (provId: string) =>
+        (clipHash: string, sourceType?: SourceType) =>
         ({ commands }) => {
-          return commands.setMark('attribution', { provId })
+          return commands.setMark('attribution', { clipHash, sourceType })
         },
       unsetAttribution:
         () =>
@@ -67,10 +74,15 @@ export const AttributionExtension = Mark.create<AttributionOptions>({
   },
 
   addProseMirrorPlugins() {
-    const clipboardOptions: { onReuseDetected?: (event: { provenanceId: string }) => void } = {}
-    if (this.options.onReuseDetected) {
-      clipboardOptions.onReuseDetected = this.options.onReuseDetected
-    }
-    return [createClipboardPlugin(clipboardOptions)]
+    const onClipsDetected = this.options.onClipsDetected
+      ?? (this.options.onReuseDetected
+        ? (event: { clipHashes: string[] }) => {
+            event.clipHashes.forEach((hash) => {
+              this.options.onReuseDetected!({ provenanceId: hash })
+            })
+          }
+        : undefined)
+
+    return [createClipboardPlugin(onClipsDetected ? { onClipsDetected } : {})]
   }
 })

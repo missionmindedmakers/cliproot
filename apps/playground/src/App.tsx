@@ -5,6 +5,7 @@ import { Toolbar } from './components/Toolbar'
 import { ClipList } from './components/ClipList'
 import { ClipDetail } from './components/ClipDetail'
 import { ProvenanceDag } from './components/ProvenanceDag'
+import { ClipEditor } from './components/ClipEditor'
 import { EmptyState } from './components/EmptyState'
 import { DEMO_BUNDLE } from './lib/demo-data'
 
@@ -32,28 +33,38 @@ export function App() {
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold tracking-tight">Cliproot Playground</h1>
           <div className="flex items-center gap-2">
-            {hasEdges && (
-              <div className="flex rounded bg-gray-800 text-sm">
-                <button
-                  onClick={() => setView('detail')}
-                  className={`rounded-l px-3 py-1 transition-colors ${
-                    view === 'detail'
-                      ? 'bg-gray-700 text-white'
-                      : 'text-gray-400 hover:text-gray-200'
-                  }`}
-                >
-                  Detail
-                </button>
+            <div className="flex rounded bg-gray-800 text-sm">
+              <button
+                onClick={() => setView('detail')}
+                className={`rounded-l px-3 py-1 transition-colors ${
+                  view === 'detail'
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Detail
+              </button>
+              {hasEdges && (
                 <button
                   onClick={() => setView('dag')}
-                  className={`rounded-r px-3 py-1 transition-colors ${
+                  className={`px-3 py-1 transition-colors ${
                     view === 'dag' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'
                   }`}
                 >
                   Graph
                 </button>
-              </div>
-            )}
+              )}
+              <button
+                onClick={() => setView('editor')}
+                className={`rounded-r px-3 py-1 transition-colors ${
+                  view === 'editor'
+                    ? 'bg-gray-700 text-white'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Editor
+              </button>
+            </div>
           </div>
         </div>
         <div className="mt-2">
@@ -72,7 +83,13 @@ export function App() {
 
             {/* Main panel */}
             <main className="min-w-0 flex-1">
-              {view === 'dag' && hasEdges ? <ProvenanceDag /> : <ClipDetail />}
+              {view === 'editor' ? (
+                <ClipEditor />
+              ) : view === 'dag' && hasEdges ? (
+                <ProvenanceDag />
+              ) : (
+                <ClipDetail />
+              )}
             </main>
           </>
         ) : (

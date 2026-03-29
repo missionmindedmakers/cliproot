@@ -1,0 +1,49 @@
+@reference "tailwindcss";
+
+/* Tiptap editor dark theme */
+.tiptap {
+  @apply text-gray-200 outline-none min-h-[400px] px-4 py-3;
+}
+.tiptap h1 { @apply text-2xl font-bold mt-6 mb-2; }
+.tiptap h2 { @apply text-xl font-semibold mt-5 mb-2; }
+.tiptap h3 { @apply text-lg font-medium mt-4 mb-1; }
+.tiptap p { @apply my-2; }
+.tiptap ul { @apply list-disc pl-6 my-2; }
+.tiptap ol { @apply list-decimal pl-6 my-2; }
+.tiptap li { @apply my-0.5; }
+.tiptap blockquote { @apply border-l-2 border-gray-600 pl-3 my-2 text-gray-400; }
+.tiptap pre { @apply bg-gray-900 rounded p-3 my-2 text-sm font-mono overflow-x-auto; }
+.tiptap code { @apply bg-gray-800 rounded px-1 text-sm font-mono; }
+.tiptap pre code { @apply bg-transparent p-0; }
+.tiptap hr { @apply border-gray-700 my-4; }
+
+/* Provenance highlight decorations by source type */
+.tiptap [data-source-type="human-authored"] {
+  @apply underline decoration-blue-500/60 decoration-2 underline-offset-2;
+}
+.tiptap [data-source-type="ai-generated"] {
+  @apply underline decoration-purple-500/60 decoration-2 underline-offset-2;
+}
+.tiptap [data-source-type="ai-assisted"] {
+  @apply underline decoration-violet-500/60 decoration-2 underline-offset-2;
+}
+.tiptap [data-source-type="external-quoted"] {
+  @apply underline decoration-amber-500/60 decoration-2 underline-offset-2;
+}
+.tiptap [data-source-type="unknown"] {
+  @apply underline decoration-gray-500/60 decoration-2 underline-offset-2;
+}
+
+/* Clickable attribution spans */
+.tiptap [data-clip-hash] {
+  @apply cursor-pointer;
+}
+.tiptap [data-clip-hash]:hover {
+  @apply bg-white/5 rounded;
+}
+
+/* Placeholder for empty editor */
+.tiptap p.is-editor-empty:first-child::before {
+  @apply text-gray-600 float-left h-0 pointer-events-none;
+  content: attr(data-placeholder);
+}
