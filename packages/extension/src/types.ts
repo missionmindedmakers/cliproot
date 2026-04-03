@@ -7,6 +7,17 @@ export interface ClipCapturedMessage {
   textHash: string
   fullText: string
   bundleJson: string | null
+  /** JSON-serialised selectors from CapturedSelection, for highlight re-anchoring. */
+  selectorsJson: string | null
+}
+
+export interface GetPageClipsRequest {
+  type: 'get-page-clips'
+  url: string
+}
+
+export interface GetPageClipsResponse {
+  clips: StoredClip[]
 }
 
 export interface PasteDetectedMessage {

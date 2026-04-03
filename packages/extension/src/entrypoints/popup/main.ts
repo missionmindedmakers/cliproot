@@ -11,6 +11,7 @@ import type {
 
 const statusEl = document.getElementById('status')!
 const toggleBtn = document.getElementById('toggle')!
+const highlightsToggle = document.getElementById('highlights-toggle') as HTMLInputElement
 const siteControls = document.getElementById('site-controls')!
 const siteHostnameEl = document.getElementById('site-hostname')!
 const siteToggleGroup = document.getElementById('site-toggle-group')!
@@ -30,6 +31,7 @@ const recentClipsSection = document.getElementById('recent-clips')!
 let currentHostname = ''
 let globalEnabled = true
 let siteSettings: Record<string, boolean | 'default'> = {}
+let highlightsEnabled = true
 
 function isRestrictedUrl(url: string): boolean {
   return (
@@ -294,10 +296,12 @@ searchInput.addEventListener('input', handleSearchInput)
 
 function loadState() {
   chrome.storage.local.get(
-    ['enabled', 'siteSettings', 'recentClips'],
+    ['enabled', 'highlightsEnabled', 'siteSettings', 'recentClips'],
     (result: Record<string, unknown>) => {
       globalEnabled = result.enabled !== false
+      highlightsEnabled = result.highlightsEnabled !== false
       siteSettings = (result.siteSettings as Record<string, boolean | 'default'>) ?? {}
+      highlightsToggle.checked = highlightsEnabled
       updateGlobalUI(globalEnabled)
       updateSiteUI()
       renderRecentClips((result.recentClips as RecentClip[]) ?? [])
@@ -312,6 +316,10 @@ chrome.storage.onChanged.addListener((changes: Record<string, chrome.storage.Sto
     updateGlobalUI(globalEnabled)
     updateSiteUI()
   }
+  if (changes.highlightsEnabled) {
+    highlightsEnabled = changes.highlightsEnabled.newValue !== false
+    highlightsToggle.checked = highlightsEnabled
+  }
   if (changes.siteSettings) {
     siteSettings = (changes.siteSettings.newValue as Record<string, boolean | 'default'>) ?? {}
     updateSiteUI()
@@ -324,6 +332,11 @@ chrome.storage.onChanged.addListener((changes: Record<string, chrome.storage.Sto
 // Toggle global on click
 toggleBtn.addEventListener('click', () => {
   chrome.storage.local.set({ enabled: !globalEnabled })
+})
+
+// Toggle highlights
+highlightsToggle.addEventListener('change', () => {
+  chrome.storage.local.set({ highlightsEnabled: highlightsToggle.checked })
 })
 
 // Wire per-site buttons

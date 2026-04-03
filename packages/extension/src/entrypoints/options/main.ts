@@ -1,6 +1,7 @@
 import type { SiteSettings } from '../../types'
 
 const globalToggle = document.getElementById('global-toggle') as HTMLInputElement
+const highlightsToggle = document.getElementById('highlights-toggle') as HTMLInputElement
 const siteList = document.getElementById('site-list')!
 const addHostname = document.getElementById('add-hostname') as HTMLInputElement
 const addValue = document.getElementById('add-value') as HTMLSelectElement
@@ -55,15 +56,23 @@ function renderSites() {
 }
 
 function loadState() {
-  chrome.storage.local.get(['enabled', 'siteSettings'], (result: Record<string, unknown>) => {
-    globalToggle.checked = result.enabled !== false
-    siteSettings = (result.siteSettings as SiteSettings) ?? {}
-    renderSites()
-  })
+  chrome.storage.local.get(
+    ['enabled', 'highlightsEnabled', 'siteSettings'],
+    (result: Record<string, unknown>) => {
+      globalToggle.checked = result.enabled !== false
+      highlightsToggle.checked = result.highlightsEnabled !== false
+      siteSettings = (result.siteSettings as SiteSettings) ?? {}
+      renderSites()
+    }
+  )
 }
 
 globalToggle.addEventListener('change', () => {
   chrome.storage.local.set({ enabled: globalToggle.checked })
+})
+
+highlightsToggle.addEventListener('change', () => {
+  chrome.storage.local.set({ highlightsEnabled: highlightsToggle.checked })
 })
 
 addBtn.addEventListener('click', () => {
@@ -84,6 +93,9 @@ clearAllBtn.addEventListener('click', () => {
 chrome.storage.onChanged.addListener((changes: Record<string, chrome.storage.StorageChange>) => {
   if (changes.enabled) {
     globalToggle.checked = changes.enabled.newValue !== false
+  }
+  if (changes.highlightsEnabled) {
+    highlightsToggle.checked = changes.highlightsEnabled.newValue !== false
   }
   if (changes.siteSettings) {
     siteSettings = (changes.siteSettings.newValue as SiteSettings) ?? {}

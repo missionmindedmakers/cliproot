@@ -9,7 +9,9 @@ import {
 import type { CapturedSelection } from '@cliproot/core'
 import { createTextHash } from '@cliproot/protocol/hash'
 import type { CrpBundle } from '@cliproot/protocol/types'
-import type { ClipCapturedMessage, PasteDetectedMessage } from '../types'
+import type { ClipCapturedMessage, GetPageClipsResponse, PasteDetectedMessage } from '../types'
+import { anchorClip } from '../anchoring'
+import { injectStyles, highlightRange, removeHighlights } from '../highlighter'
 
 export default defineContentScript({
   matches: ['<all_urls>'],
@@ -17,6 +19,8 @@ export default defineContentScript({
   main() {
     let globalEnabled = true
     let siteOverride: boolean | 'default' = 'default'
+    let highlightsEnabled = true
+    let highlightsRendered = false
     let pendingCapture: { captured: CapturedSelection; bundle: CrpBundle } | null = null
     let bubbleListenerFired = false
 
@@ -26,12 +30,19 @@ export default defineContentScript({
     }
 
     // Sync enabled state from storage
-    chrome.storage.local.get(['enabled', 'siteSettings'], (result: Record<string, unknown>) => {
-      globalEnabled = result.enabled !== false
-      const siteSettings = (result.siteSettings ?? {}) as Record<string, boolean | 'default'>
-      const hostname = location.hostname
-      siteOverride = hostname in siteSettings ? siteSettings[hostname] : 'default'
-    })
+    chrome.storage.local.get(
+      ['enabled', 'siteSettings', 'highlightsEnabled'],
+      (result: Record<string, unknown>) => {
+        globalEnabled = result.enabled !== false
+        highlightsEnabled = result.highlightsEnabled !== false
+        const siteSettings = (result.siteSettings ?? {}) as Record<string, boolean | 'default'>
+        const hostname = location.hostname
+        siteOverride = hostname in siteSettings ? siteSettings[hostname] : 'default'
+
+        // Trigger highlights after initial settings load
+        scheduleHighlights()
+      }
+    )
 
     chrome.storage.onChanged.addListener(
       (changes: Record<string, chrome.storage.StorageChange>) => {
@@ -46,8 +57,72 @@ export default defineContentScript({
           const hostname = location.hostname
           siteOverride = hostname in siteSettings ? siteSettings[hostname] : 'default'
         }
+        if (changes.highlightsEnabled) {
+          highlightsEnabled = changes.highlightsEnabled.newValue !== false
+          if (highlightsEnabled) {
+            applyHighlights()
+          } else {
+            clearHighlights()
+          }
+        }
       }
     )
+
+    // Apply highlights once the DOM is fully loaded
+    function scheduleHighlights() {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => applyHighlights(), { once: true })
+      } else {
+        applyHighlights()
+      }
+    }
+
+    async function applyHighlights() {
+      if (!highlightsEnabled || highlightsRendered) return
+
+      let response: GetPageClipsResponse | undefined
+      try {
+        response = await chrome.runtime.sendMessage({
+          type: 'get-page-clips',
+          url: window.location.href
+        })
+      } catch {
+        return
+      }
+
+      if (!response?.clips?.length) return
+
+      injectStyles()
+
+      for (const clip of response.clips) {
+        if (!clip.selectors?.textQuote && !clip.content) continue
+        try {
+          const range = anchorClip(clip, document.body)
+          if (range) {
+            highlightRange(range, clip.clipHash)
+          }
+        } catch {
+          // Best-effort — skip clips that can't be anchored
+        }
+      }
+
+      highlightsRendered = true
+    }
+
+    function clearHighlights() {
+      removeHighlights()
+      highlightsRendered = false
+    }
+
+    // Re-apply when navigating within SPAs
+    window.addEventListener('popstate', () => {
+      clearHighlights()
+      applyHighlights()
+    })
+    window.addEventListener('hashchange', () => {
+      clearHighlights()
+      applyHighlights()
+    })
 
     // Phase 1: Capture-phase listener — snapshot selection, build bundle, do NOT preventDefault
     document.addEventListener(
@@ -105,19 +180,44 @@ export default defineContentScript({
         const bundle = pendingCapture.bundle
         writeCustomFormatToClipboard(bundle, plainText, augmentedHtml)
 
+        // Capture the current selection range before it may be cleared
+        const currentSelection = document.getSelection()
+        const immediateRange =
+          currentSelection && currentSelection.rangeCount > 0
+            ? currentSelection.getRangeAt(0).cloneRange()
+            : null
+
+        const captured = pendingCapture.captured
+        const clipHash = pendingCapture.bundle.clips?.[0]?.textHash ?? ''
+
+        // Serialise selectors for background storage
+        const selectorsJson = JSON.stringify({
+          textQuote: captured.textQuote,
+          textPosition: captured.textPosition,
+          domSelector: captured.domSelector
+        })
+
         // Notify background about the captured clip
         chrome.runtime.sendMessage({
           type: 'clip-captured',
           hostname: location.hostname,
           url: window.location.href,
           title: document.title,
-          textPreview: pendingCapture.captured.text?.substring(0, 80) ?? '',
-          textHash: pendingCapture.bundle.clips?.[0]?.textHash ?? '',
-          fullText: pendingCapture.captured.text ?? '',
-          bundleJson: JSON.stringify(pendingCapture.bundle)
+          textPreview: captured.text?.substring(0, 80) ?? '',
+          textHash: clipHash,
+          fullText: captured.text ?? '',
+          bundleJson: JSON.stringify(pendingCapture.bundle),
+          selectorsJson
         } satisfies ClipCapturedMessage)
 
         pendingCapture = null
+
+        // Immediately highlight the just-clipped text (no re-anchoring needed)
+        if (highlightsEnabled && immediateRange && clipHash) {
+          injectStyles()
+          highlightRange(immediateRange, clipHash)
+          highlightsRendered = true
+        }
       },
       { capture: false }
     )
