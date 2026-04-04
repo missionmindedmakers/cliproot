@@ -96,11 +96,9 @@ function anchorByTextQuote(
 
   // Multiple matches — disambiguate with prefix/suffix context
   for (const idx of matches) {
-    const prefixOk =
-      !prefix || bodyText.slice(Math.max(0, idx - prefix.length), idx) === prefix
+    const prefixOk = !prefix || bodyText.slice(Math.max(0, idx - prefix.length), idx) === prefix
     const suffixStart = idx + exact.length
-    const suffixOk =
-      !suffix || bodyText.slice(suffixStart, suffixStart + suffix.length) === suffix
+    const suffixOk = !suffix || bodyText.slice(suffixStart, suffixStart + suffix.length) === suffix
 
     if (prefixOk && suffixOk) {
       return offsetsToRange(root, idx, idx + exact.length)

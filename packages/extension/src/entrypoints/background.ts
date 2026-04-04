@@ -42,7 +42,12 @@ function documentIdFromUrl(url: string): string {
 export default defineBackground(() => {
   // Initialize default state
   chrome.runtime.onInstalled.addListener(() => {
-    chrome.storage.local.set({ enabled: true, highlightsEnabled: true, siteSettings: {}, recentClips: [] })
+    chrome.storage.local.set({
+      enabled: true,
+      highlightsEnabled: true,
+      siteSettings: {},
+      recentClips: []
+    })
     updateBadge(true, 0)
 
     chrome.contextMenus.create({
@@ -292,8 +297,10 @@ export default defineBackground(() => {
         if (captured.textPosition) selectors.textPosition = captured.textPosition
         if (captured.domSelector) {
           selectors.dom = {}
-          if (captured.domSelector.elementId) selectors.dom.elementId = captured.domSelector.elementId
-          if (captured.domSelector.cssSelector) selectors.dom.cssSelector = captured.domSelector.cssSelector
+          if (captured.domSelector.elementId)
+            selectors.dom.elementId = captured.domSelector.elementId
+          if (captured.domSelector.cssSelector)
+            selectors.dom.cssSelector = captured.domSelector.cssSelector
         }
       } catch {
         // Best-effort — malformed JSON
