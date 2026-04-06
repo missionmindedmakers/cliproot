@@ -27,7 +27,7 @@ interface BundleStore {
   selectedClipHash: string | null
 
   /** View mode for the main panel */
-  view: 'detail' | 'dag' | 'editor'
+  view: 'detail' | 'dag' | 'editor' | 'raw'
 
   /**
    * Callback registered by ClipEditor when mounted.
@@ -40,7 +40,7 @@ interface BundleStore {
   addBundles: (entries: [string, CrpBundle][]) => void
   removeBundle: (key: string) => void
   selectClip: (hash: string | null) => void
-  setView: (view: 'detail' | 'dag' | 'editor') => void
+  setView: (view: 'detail' | 'dag' | 'editor' | 'raw') => void
   setInsertClipHandler: (handler: ((clipHash: string) => void) | null) => void
   clearAll: () => void
 }

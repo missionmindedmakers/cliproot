@@ -7,6 +7,7 @@ import { ClipDetail } from './components/ClipDetail'
 import { ProvenanceDag } from './components/ProvenanceDag'
 import { ClipEditor } from './components/ClipEditor'
 import { EmptyState } from './components/EmptyState'
+import { RawJson } from './components/RawJson'
 import { DEMO_BUNDLE } from './lib/demo-data'
 
 export function App() {
@@ -54,11 +55,19 @@ export function App() {
               )}
               <button
                 onClick={() => setView('editor')}
-                className={`rounded-r px-3 py-1 transition-colors ${
+                className={`px-3 py-1 transition-colors ${
                   view === 'editor' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'
                 }`}
               >
                 Editor
+              </button>
+              <button
+                onClick={() => setView('raw')}
+                className={`rounded-r px-3 py-1 transition-colors ${
+                  view === 'raw' ? 'bg-gray-700 text-white' : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Raw JSON
               </button>
             </div>
           </div>
@@ -83,6 +92,8 @@ export function App() {
                 <ClipEditor />
               ) : view === 'dag' && hasEdges ? (
                 <ProvenanceDag />
+              ) : view === 'raw' ? (
+                <RawJson />
               ) : (
                 <ClipDetail />
               )}
