@@ -1,6 +1,9 @@
+import { useEffect } from 'react'
 import type { CrpBundle } from '@cliproot/protocol'
 import { validateBundle } from '@cliproot/protocol'
 import { useBundleStore } from './hooks/useBundleStore'
+import { useRegistryStore } from './hooks/useRegistryStore'
+import { handleOAuthCallback } from './lib/oauth-callback'
 import { Toolbar } from './components/Toolbar'
 import { ClipList } from './components/ClipList'
 import { ClipDetail } from './components/ClipDetail'
@@ -16,6 +19,15 @@ export function App() {
   const view = useBundleStore((s) => s.view)
   const setView = useBundleStore((s) => s.setView)
   const addBundle = useBundleStore((s) => s.addBundle)
+
+  const checkAuth = useRegistryStore((s) => s.checkAuth)
+
+  useEffect(() => {
+    const wasCallback = handleOAuthCallback()
+    if (wasCallback) {
+      checkAuth()
+    }
+  }, [checkAuth])
 
   const hasClips = clips.size > 0
   const hasEdges = edges.length > 0

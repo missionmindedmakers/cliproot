@@ -12,6 +12,7 @@
   "dependencies": {
     "@cliproot/core": "workspace:*",
     "@cliproot/protocol": "workspace:*",
+    "@cliproot/registry-client": "workspace:*",
     "@cliproot/tiptap": "workspace:*",
     "@tiptap/core": "^2.11.0",
     "@tiptap/pm": "^2.11.0",

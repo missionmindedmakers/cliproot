@@ -26,6 +26,9 @@ importers:
       '@cliproot/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
+      '@cliproot/registry-client':
+        specifier: workspace:*
+        version: link:../../packages/registry-client
       '@cliproot/tiptap':
         specifier: workspace:*
         version: link:../../packages/tiptap
@@ -161,6 +164,9 @@ importers:
       '@cliproot/protocol':
         specifier: workspace:*
         version: link:../protocol
+      '@cliproot/registry-client':
+        specifier: workspace:*
+        version: link:../registry-client
     devDependencies:
       '@types/chrome':
         specifier: ^0.0.304
@@ -187,6 +193,22 @@ importers:
         specifier: ^2.0.0
         version: 2.1.0
     devDependencies:
+      typescript:
+        specifier: 5.7.3
+        version: 5.7.3
+      vitest:
+        specifier: 3.0.5
+        version: 3.0.5(@types/node@25.5.0)(happy-dom@17.6.3)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)
+
+  packages/registry-client:
+    dependencies:
+      '@cliproot/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+    devDependencies:
+      '@types/chrome':
+        specifier: ^0.0.304
+        version: 0.0.304
       typescript:
         specifier: 5.7.3
         version: 5.7.3

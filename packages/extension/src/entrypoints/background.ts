@@ -8,7 +8,14 @@ import type {
   GenerateBibliographyRequest,
   GetClipDetailRequest,
   SearchClipsRequest,
-  PageSource
+  PageSource,
+  RegistryConnectRequest,
+  RegistryDisconnectRequest,
+  RegistryLoginRequest,
+  RegistryPublishClipsRequest,
+  RegistryStatusRequest,
+  RegistryStatusResponse,
+  RegistrySyncRequest
 } from '../types'
 import {
   storeClip,
@@ -22,8 +29,11 @@ import {
   findEdgesByObjectRef,
   getClipByHash,
   getDocumentById,
-  searchClips
+  searchClips,
+  getAllClips
 } from '../db'
+import { getRegistryClient } from '../registry'
+import type { CrpBundle } from '@cliproot/protocol'
 
 const tabClipCounts = new Map<number, number>()
 
@@ -87,6 +97,12 @@ export default defineBackground(() => {
     | GenerateBibliographyRequest
     | GetClipDetailRequest
     | SearchClipsRequest
+    | RegistryConnectRequest
+    | RegistryDisconnectRequest
+    | RegistryLoginRequest
+    | RegistryPublishClipsRequest
+    | RegistryStatusRequest
+    | RegistrySyncRequest
 
   chrome.runtime.onMessage.addListener(
     (message: MessageType, sender, sendResponse: (response: unknown) => void) => {
@@ -108,6 +124,24 @@ export default defineBackground(() => {
         return true
       } else if (message.type === 'search-clips') {
         handleSearchClips(message.query).then(sendResponse)
+        return true
+      } else if (message.type === 'registry-connect') {
+        handleRegistryConnect(message.url).then(sendResponse)
+        return true
+      } else if (message.type === 'registry-disconnect') {
+        handleRegistryDisconnect().then(sendResponse)
+        return true
+      } else if (message.type === 'registry-login') {
+        handleRegistryLogin().then(sendResponse)
+        return true
+      } else if (message.type === 'registry-publish-clips') {
+        handleRegistryPublishClips(message.project).then(sendResponse)
+        return true
+      } else if (message.type === 'registry-status') {
+        handleRegistryStatus().then(sendResponse)
+        return true
+      } else if (message.type === 'registry-sync') {
+        handleRegistrySync(message.project).then(sendResponse)
         return true
       }
     }
@@ -136,6 +170,143 @@ export default defineBackground(() => {
       })
     }
   })
+
+  // ── Registry handlers ──────────────────────────────────────
+
+  async function handleRegistryConnect(url: string) {
+    try {
+      const client = getRegistryClient()
+      const config = await client.connect(url)
+      return { ok: true, config }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  }
+
+  async function handleRegistryDisconnect() {
+    try {
+      const client = getRegistryClient()
+      await client.disconnect()
+      await chrome.storage.local.remove(['registryUser', 'registryAutoSync'])
+      return { ok: true }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  }
+
+  async function handleRegistryLogin() {
+    try {
+      const client = getRegistryClient()
+      const connected = await client.isConnected()
+      if (!connected) return { ok: false, error: 'Not connected to a registry' }
+
+      const result = await chrome.storage.local.get('registryUrl')
+      const registryUrl = result['registryUrl'] as string | undefined
+      if (!registryUrl) return { ok: false, error: 'No registry URL configured' }
+
+      // Open the registry sign-in page in a new tab
+      const callbackUrl = chrome.runtime.getURL('options.html') + '?auth=callback'
+      const { getAuthUrl } = await import('@cliproot/registry-client')
+      const authUrl = getAuthUrl(registryUrl, callbackUrl)
+
+      const tab = await chrome.tabs.create({ url: authUrl })
+      // Listen for the redirect back to our options page
+      return new Promise<{ ok: boolean; error?: string }>((resolve) => {
+        const listener = (tabId: number, changeInfo: chrome.tabs.TabChangeInfo) => {
+          if (tabId !== tab.id || changeInfo.status !== 'complete') return
+          chrome.tabs.get(tabId, async (updatedTab) => {
+            if (chrome.runtime.lastError || !updatedTab.url) return
+            if (!updatedTab.url.includes('auth=callback')) return
+
+            chrome.tabs.onUpdated.removeListener(listener)
+            // Extract token from URL params if present, or check session
+            try {
+              const url = new URL(updatedTab.url)
+              const token = url.searchParams.get('token')
+              if (token) {
+                const { ChromeStorageTokenStore } = await import('@cliproot/registry-client')
+                const tokenStore = new ChromeStorageTokenStore()
+                await tokenStore.setToken(token)
+              }
+              // Verify session
+              const session = await client.checkAuth()
+              if (session.valid && session.user) {
+                await chrome.storage.local.set({ registryUser: session.user })
+              }
+              chrome.tabs.remove(tabId).catch(() => {})
+              resolve({ ok: session.valid })
+            } catch (err) {
+              resolve({ ok: false, error: err instanceof Error ? err.message : String(err) })
+            }
+          })
+        }
+        chrome.tabs.onUpdated.addListener(listener)
+      })
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  }
+
+  async function handleRegistryPublishClips(project: string) {
+    try {
+      const client = getRegistryClient()
+      const clips = await getAllClips()
+      const bundles: CrpBundle[] = []
+
+      for (const clip of clips) {
+        if (!clip.bundleJson) continue
+        try {
+          bundles.push(JSON.parse(clip.bundleJson) as CrpBundle)
+        } catch {
+          // Skip malformed bundle JSON
+        }
+      }
+
+      if (bundles.length === 0) {
+        return { ok: true, accepted: 0 }
+      }
+
+      const result = await client.publishClips({ project, bundles })
+      return { ok: true, accepted: result.accepted }
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  }
+
+  async function handleRegistryStatus(): Promise<RegistryStatusResponse> {
+    const client = getRegistryClient()
+    const connected = await client.isConnected()
+    const result = await chrome.storage.local.get(['registryUrl', 'registryUser', 'registryAutoSync'])
+    return {
+      connected,
+      registryUrl: (result['registryUrl'] as string) ?? null,
+      user: (result['registryUser'] as RegistryStatusResponse['user']) ?? null,
+      autoSync: (result['registryAutoSync'] as boolean) ?? false
+    }
+  }
+
+  async function handleRegistrySync(project?: string) {
+    const targetProject = project ?? 'default'
+    return handleRegistryPublishClips(targetProject)
+  }
+
+  /** Auto-sync a single clip to the registry if enabled. */
+  async function autoSyncClip(bundleJson: string | null) {
+    if (!bundleJson) return
+    const result = await chrome.storage.local.get(['registryAutoSync'])
+    if (!result['registryAutoSync']) return
+
+    try {
+      const client = getRegistryClient()
+      const connected = await client.isConnected()
+      if (!connected) return
+
+      const bundle = JSON.parse(bundleJson) as CrpBundle
+      await client.publishClips({ project: 'default', bundles: [bundle] })
+    } catch {
+      // Best-effort — don't block capture on sync failure
+    }
+  }
 
   /**
    * Find the provenance sources for content pasted on a given page URL.
@@ -327,6 +498,9 @@ export default defineBackground(() => {
       activityType: 'copy',
       createdAt: now
     }).catch(() => {})
+
+    // Auto-sync to registry if enabled
+    autoSyncClip(message.bundleJson).catch(() => {})
 
     // Update badge with count
     chrome.storage.local.get(['enabled', 'siteSettings'], (result: Record<string, unknown>) => {

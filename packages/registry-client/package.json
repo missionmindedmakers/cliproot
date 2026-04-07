@@ -1,0 +1,46 @@
+{
+  "name": "@cliproot/registry-client",
+  "version": "0.0.1",
+  "description": "TypeScript HTTP client for the CRP Registry Protocol.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./token-storage": {
+      "types": "./dist/token-storage.d.ts",
+      "import": "./dist/token-storage.js"
+    },
+    "./auth": {
+      "types": "./dist/auth.d.ts",
+      "import": "./dist/auth.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@cliproot/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.304",
+    "typescript": "5.7.3",
+    "vitest": "3.0.5"
+  }
+}
