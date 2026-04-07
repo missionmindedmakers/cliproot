@@ -8,13 +8,17 @@ import {
 import { publishPack } from "../services/pack-service.js";
 import { searchClips } from "../services/search-service.js";
 import { encodeCursor, decodeCursor } from "../middleware/pagination.js";
+import { requireAuth, getAuthUser } from "../middleware/auth.js";
 import type { PublishClipsResult } from "../types.js";
 
 export function createLayer3Routes(ctx: AppContext) {
   const routes = new Hono();
 
+  // Apply auth middleware to all write endpoints
+  const authMiddleware = requireAuth(ctx);
+
   // POST /v1/api/clips — Publish individual CRP bundles
-  routes.post("/v1/api/clips", async (c) => {
+  routes.post("/v1/api/clips", authMiddleware, async (c) => {
     const body = await c.req.json<{
       owner?: string;
       project: string;
@@ -28,7 +32,7 @@ export function createLayer3Routes(ctx: AppContext) {
       throw new AppError(400, "missing_bundles", "bundles array is required");
     }
 
-    const owner = body.owner ?? ctx.config.defaultOwner;
+    const owner = getAuthUser(c)?.name ?? body.owner ?? ctx.config.defaultOwner;
     const projectName = body.project;
 
     const validated = body.bundles.map(validateAndParseBundle);
@@ -50,7 +54,7 @@ export function createLayer3Routes(ctx: AppContext) {
   });
 
   // POST /v1/api/packs — Publish a pack
-  routes.post("/v1/api/packs", async (c) => {
+  routes.post("/v1/api/packs", authMiddleware, async (c) => {
     const contentType = c.req.header("content-type") ?? "";
     if (
       !contentType.includes("application/x-cliprootpack") &&
@@ -73,7 +77,7 @@ export function createLayer3Routes(ctx: AppContext) {
     }
 
     const owner =
-      c.req.query("owner") ?? ctx.config.defaultOwner;
+      getAuthUser(c)?.name ?? c.req.query("owner") ?? ctx.config.defaultOwner;
 
     const result = await publishPack(
       ctx.db,

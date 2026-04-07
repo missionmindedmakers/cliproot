@@ -67,12 +67,13 @@ This is a pnpm/Turborepo monorepo containing the canonical protocol schemas and 
 
 ### [`cliproot_rust`](https://github.com/cliproot/cliproot_rust) — CLI, MCP Server, and Storage Engine
 
-The Rust implementation provides the native runtime: a CLI with 20+ subcommands, an MCP server for AI agents, filesystem + SQLite storage, OS clipboard integration, and `.cliprootpack` archive support.
+The Rust implementation provides the native runtime: a CLI with 20+ subcommands, an MCP server for AI agents, filesystem + SQLite storage, OS clipboard integration, `.cliprootpack` archive support, and registry authentication.
 
 | Crate | Purpose |
 |---|---|
 | `cliproot-core` | Protocol model types, hashing, verification, text matching |
 | `cliproot-store` | Filesystem object store + SQLite index, pack format (tar+zstd) |
+| `cliproot-registry` | Registry HTTP client, OAuth 2.0 device flow, credential storage (keychain/env/file) |
 | `cliproot-mcp` | MCP server (24+ tools) over stdio for AI agents |
 | `cliproot-cli` | CLI binary with embedded MCP server |
 
@@ -210,7 +211,7 @@ pnpm --filter @cliproot/playground build    # static site output in apps/playgro
 
 The registry server (`apps/registry/`) is the reference implementation of the [CRP Registry Protocol](spec/registry.md). It provides the three-layer REST+JSON API (index, download, write) that the `cliproot` CLI's `push`, `pull`, and `search` commands talk to.
 
-The server uses [Hono](https://hono.dev/) on Node.js with SQLite (via `better-sqlite3` + Drizzle ORM) for metadata and a local filesystem blob store for pack and artifact data. No external services are required to run it locally.
+The server uses [Hono](https://hono.dev/) on Node.js with SQLite (via `better-sqlite3` + Drizzle ORM) for metadata and a local filesystem blob store for pack and artifact data. Authentication is provided by [BetterAuth](https://www.better-auth.com/) with email/password, optional Google SSO, and an OAuth 2.0 device authorization flow (RFC 8628) for CLI login. No external services are required to run it locally.
 
 #### Running locally
 
@@ -237,11 +238,33 @@ The server creates `.data/registry.db` and `.data/blobs/` in the `apps/registry/
 | `DATABASE_PATH` | `$DATA_DIR/registry.db` | Override the SQLite database path |
 | `DEFAULT_OWNER` | `local` | Owner namespace used when a push request omits the `?owner=` param |
 | `MAX_PACK_SIZE` | `104857600` (100 MB) | Maximum accepted `.cliprootpack` upload size in bytes |
+| `AUTH_REQUIRED` | `false` | Require authentication for write endpoints (push/publish) |
+| `AUTH_SECRET` | `dev-secret-change-me` | Secret key for BetterAuth session signing (change in production) |
+| `GOOGLE_CLIENT_ID` | _(empty)_ | Google OAuth client ID (optional, enables Google SSO) |
+| `GOOGLE_CLIENT_SECRET` | _(empty)_ | Google OAuth client secret |
+| `DEVICE_CODE_TTL` | `900` | Device authorization code expiry in seconds |
+| `DEVICE_POLL_INTERVAL` | `5` | Minimum polling interval for device flow in seconds |
 
 ```bash
 # Example: custom port and owner
 PORT=4000 DEFAULT_OWNER=jasonwhitwill pnpm --filter @cliproot/registry dev
+
+# Example: enable authentication
+AUTH_REQUIRED=true AUTH_SECRET=$(openssl rand -base64 32) pnpm --filter @cliproot/registry dev
 ```
+
+#### Authentication
+
+When `AUTH_REQUIRED=true`, write endpoints (`POST /v1/api/clips`, `POST /v1/api/packs`) require a valid Bearer token. Read endpoints (index, download, search) remain public.
+
+The registry uses [BetterAuth](https://www.better-auth.com/) for user management and provides:
+
+- **Email/password** registration and login (`/api/auth/sign-up/email`, `/api/auth/sign-in/email`)
+- **Google SSO** (when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are configured)
+- **OAuth 2.0 device authorization flow** (RFC 8628) for CLI login — the `cliproot login` command initiates this flow, opening a browser to the registry's `/device` verification page
+- **Bearer token authentication** — session tokens from sign-in or device flow are sent as `Authorization: Bearer <token>` headers
+
+When auth is enabled, the authenticated user's name is used as the owner namespace for published clips, replacing the `?owner=` parameter.
 
 #### Connect the CLI
 
@@ -250,6 +273,11 @@ Once the registry is running, point the `cliproot` CLI at it:
 ```bash
 cliproot remote add local http://localhost:3002 --owner jasonwhitwill
 cliproot project use auth-refactor
+
+# If the registry requires auth, log in first:
+cliproot login                     # opens browser for device flow
+cliproot login --token crp_...     # or provide a token directly (CI)
+
 cliproot push          # packs and uploads the current project
 cliproot pull          # fetches and imports the latest pack
 cliproot search "oauth pkce"
@@ -267,9 +295,15 @@ cliproot search "oauth pkce"
 | Download | `GET /v1/download/packs/{hash}.cliprootpack` | Download a pack by hash |
 | Download | `GET /v1/download/clips/{hash}.json` | Download a bundle by hash |
 | Download | `GET /v1/download/artifacts/{hash}` | Download an artifact blob |
-| API | `POST /v1/api/packs` | Publish a `.cliprootpack` archive |
-| API | `POST /v1/api/clips` | Publish individual CRP bundles (JSON) |
+| API | `POST /v1/api/packs` | Publish a `.cliprootpack` archive (auth required when enabled) |
+| API | `POST /v1/api/clips` | Publish individual CRP bundles (auth required when enabled) |
 | API | `GET /v1/api/search?q=...` | Full-text search across published clips |
+| Auth | `POST /api/auth/sign-up/email` | Register a new user |
+| Auth | `POST /api/auth/sign-in/email` | Sign in and get session token |
+| Auth | `POST /api/auth/device/code` | Initiate device authorization flow (RFC 8628) |
+| Auth | `POST /api/auth/device/token` | Poll for access token (device flow) |
+| Auth | `POST /api/auth/device/approve` | Approve device code (requires session) |
+| Auth | `GET /device` | Device verification page (HTML) |
 
 #### Run registry tests
 

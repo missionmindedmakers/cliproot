@@ -7,6 +7,12 @@ export interface RegistryConfig {
   baseUrl: string;
   defaultOwner: string;
   maxPackSize: number;
+  authRequired: boolean;
+  authSecret: string;
+  googleClientId: string;
+  googleClientSecret: string;
+  deviceCodeTtl: number;
+  devicePollInterval: number;
 }
 
 export function loadConfig(): RegistryConfig {
@@ -20,6 +26,18 @@ export function loadConfig(): RegistryConfig {
     defaultOwner: process.env["DEFAULT_OWNER"] ?? "local",
     maxPackSize: parseInt(
       process.env["MAX_PACK_SIZE"] ?? "104857600",
+      10,
+    ),
+    authRequired: process.env["AUTH_REQUIRED"] === "true",
+    authSecret: process.env["AUTH_SECRET"] ?? "dev-secret-change-me",
+    googleClientId: process.env["GOOGLE_CLIENT_ID"] ?? "",
+    googleClientSecret: process.env["GOOGLE_CLIENT_SECRET"] ?? "",
+    deviceCodeTtl: parseInt(
+      process.env["DEVICE_CODE_TTL"] ?? "900",
+      10,
+    ),
+    devicePollInterval: parseInt(
+      process.env["DEVICE_POLL_INTERVAL"] ?? "5",
       10,
     ),
   };

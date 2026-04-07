@@ -42,7 +42,7 @@ export async function readCliprootFromClipboard(): Promise<{
         console.log('[cliproot] No custom MIME — trying HTML fallback')
         const htmlBlob = await item.getType('text/html')
         const html = await htmlBlob.text()
-        console.log('[cliproot] HTML content (first 300 chars):', html.slice(0, 300))
+        console.log('[cliproot] HTML content (first 3000 chars):', html.slice(0, 3000))
         const bundle = parseBundleFromHtml(html)
         if (bundle) {
           console.log('[cliproot] Bundle extracted from HTML fallback')
@@ -107,7 +107,7 @@ export function readCliprootFromPasteEvent(e: ClipboardEvent): {
   const html = clipboardData.getData('text/html')
   if (html) {
     console.log('[cliproot:paste] Trying HTML fallback, length:', html.length)
-    console.log('[cliproot:paste] HTML (first 300 chars):', html.slice(0, 300))
+    console.log('[cliproot:paste] HTML (first 3000 chars):', html.slice(0, 3000))
     const bundle = parseBundleFromHtml(html)
     if (bundle) {
       console.log('[cliproot:paste] Bundle extracted from HTML')

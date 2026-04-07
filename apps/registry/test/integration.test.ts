@@ -2,11 +2,11 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createTestApp, cleanupTestApp, makeTestBundle } from "./helpers.js";
 
 describe("CRP Registry Integration", () => {
-  let app: ReturnType<typeof createTestApp>["app"];
+  let app: Awaited<ReturnType<typeof createTestApp>>["app"];
   let tmpDir: string;
 
-  beforeAll(() => {
-    const testEnv = createTestApp();
+  beforeAll(async () => {
+    const testEnv = await createTestApp();
     app = testEnv.app;
     tmpDir = testEnv.tmpDir;
   });

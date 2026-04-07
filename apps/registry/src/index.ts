@@ -3,8 +3,11 @@ import { createApp } from "./app.js";
 import { loadConfig } from "./config.js";
 
 const config = loadConfig();
-const app = createApp({ config });
 
-serve({ fetch: app.fetch, port: config.port }, (info) => {
-  console.log(`CRP Registry server listening on http://localhost:${info.port}`);
+createApp({ config }).then((app) => {
+  serve({ fetch: app.fetch, port: config.port }, (info) => {
+    console.log(
+      `CRP Registry server listening on http://localhost:${info.port}`,
+    );
+  });
 });
