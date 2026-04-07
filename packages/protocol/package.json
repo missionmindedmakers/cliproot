@@ -44,7 +44,7 @@
   "scripts": {
     "schema:sync": "node ./scripts/sync-schema.mjs",
     "schema:check": "node ./scripts/sync-schema.mjs --check",
-    "build": "pnpm run schema:check && tsc -p tsconfig.json",
+    "build": "pnpm run schema:check && tsc -b tsconfig.json",
     "typecheck": "pnpm run schema:check && tsc -p tsconfig.json --noEmit",
     "test": "pnpm run schema:check && vitest run",
     "lint": "pnpm run typecheck"
