@@ -129,39 +129,3 @@ export interface SearchClipsRequest {
 export interface SearchClipsResponse {
   clips: StoredClip[]
 }
-
-// ── Registry messages ──
-
-export interface RegistryConnectRequest {
-  type: 'registry-connect'
-  url: string
-}
-
-export interface RegistryDisconnectRequest {
-  type: 'registry-disconnect'
-}
-
-export interface RegistryLoginRequest {
-  type: 'registry-login'
-}
-
-export interface RegistryPublishClipsRequest {
-  type: 'registry-publish-clips'
-  project: string
-}
-
-export interface RegistryStatusRequest {
-  type: 'registry-status'
-}
-
-export interface RegistryStatusResponse {
-  connected: boolean
-  registryUrl: string | null
-  user: { id: string; name: string; email: string } | null
-  autoSync: boolean
-}
-
-export interface RegistrySyncRequest {
-  type: 'registry-sync'
-  project?: string
-}

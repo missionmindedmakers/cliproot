@@ -6,8 +6,7 @@ import type {
   GetClipDetailResponse,
   SearchClipsResponse,
   StoredClip,
-  StoredEdge,
-  RegistryStatusResponse
+  StoredEdge
 } from '../../types'
 
 const statusEl = document.getElementById('status')!
@@ -358,37 +357,6 @@ siteToggleGroup.addEventListener('click', (e) => {
 settingsLink.addEventListener('click', (e) => {
   e.preventDefault()
   chrome.runtime.openOptionsPage()
-})
-
-// Registry sync button
-const syncBtn = document.getElementById('sync-btn')!
-chrome.runtime.sendMessage({ type: 'registry-status' }, (response: RegistryStatusResponse) => {
-  if (response?.connected) {
-    syncBtn.style.display = ''
-  }
-})
-
-syncBtn.addEventListener('click', () => {
-  syncBtn.textContent = 'Syncing...'
-  ;(syncBtn as HTMLButtonElement).disabled = true
-  chrome.runtime.sendMessage(
-    { type: 'registry-sync' },
-    (response: { ok: boolean; accepted?: number }) => {
-      ;(syncBtn as HTMLButtonElement).disabled = false
-      syncBtn.textContent = response?.ok ? `Synced ${response.accepted ?? 0}` : 'Failed'
-      setTimeout(() => {
-        syncBtn.textContent = 'Sync'
-      }, 2000)
-    }
-  )
-})
-
-chrome.storage.onChanged.addListener((changes: Record<string, chrome.storage.StorageChange>) => {
-  if (changes.registryToken || changes.registryUrl) {
-    chrome.runtime.sendMessage({ type: 'registry-status' }, (response: RegistryStatusResponse) => {
-      syncBtn.style.display = response?.connected ? '' : 'none'
-    })
-  }
 })
 
 // Query active tab to get hostname

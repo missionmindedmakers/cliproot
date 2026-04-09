@@ -201,17 +201,6 @@ export async function findDocumentsByUri(uri: string): Promise<StoredDocument[]>
   })
 }
 
-export async function getAllClips(): Promise<StoredClip[]> {
-  const db = await getDb()
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('clips', 'readonly')
-    const store = tx.objectStore('clips')
-    const request = store.getAll()
-    request.onsuccess = () => resolve(request.result as StoredClip[])
-    request.onerror = () => reject(request.error)
-  })
-}
-
 export async function findClipsByDocumentId(documentId: string): Promise<StoredClip[]> {
   const db = await getDb()
   return new Promise((resolve, reject) => {

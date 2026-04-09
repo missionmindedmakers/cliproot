@@ -16,8 +16,7 @@
   },
   "dependencies": {
     "@cliproot/core": "workspace:*",
-    "@cliproot/protocol": "workspace:*",
-    "@cliproot/registry-client": "workspace:*"
+    "@cliproot/protocol": "workspace:*"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.304",

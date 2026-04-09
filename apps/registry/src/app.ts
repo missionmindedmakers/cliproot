@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { type RegistryConfig, loadConfig } from "./config.js";
 import { createDb, type RegistryDb } from "./db/connection.js";
 import {
@@ -35,14 +34,6 @@ export async function createApp(overrides?: Partial<AppContext>) {
   const ctx: AppContext = { config, db, blobStore, auth };
 
   const app = new Hono();
-  app.use(
-    "*",
-    cors({
-      origin: "*",
-      allowHeaders: ["Content-Type", "Authorization", "If-None-Match"],
-      exposeHeaders: ["ETag"],
-    }),
-  );
   app.onError(errorHandler);
 
   app.get("/health", (c) => c.json({ status: "ok" }));

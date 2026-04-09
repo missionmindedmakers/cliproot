@@ -1,5 +1,4 @@
 import type { SiteSettings } from '../../types'
-import { renderRegistrySection } from './registry-section'
 
 const globalToggle = document.getElementById('global-toggle') as HTMLInputElement
 const highlightsToggle = document.getElementById('highlights-toggle') as HTMLInputElement
@@ -105,9 +104,3 @@ chrome.storage.onChanged.addListener((changes: Record<string, chrome.storage.Sto
 })
 
 loadState()
-
-// Registry section
-const registryContainer = document.getElementById('registry-container')
-if (registryContainer) {
-  renderRegistrySection(registryContainer)
-}

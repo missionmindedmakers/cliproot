@@ -2,10 +2,8 @@ import { useRef, useState } from 'react'
 import type { CrpBundle } from '@cliproot/protocol'
 import { validateBundle } from '@cliproot/protocol'
 import { useBundleStore } from '../hooks/useBundleStore'
-import { useRegistryStore } from '../hooks/useRegistryStore'
 import { readCliprootFromPasteEvent } from '../lib/clipboard-read'
 import { isFsaSupported, openCliprootDirectory, readBundlesFromFileList } from '../lib/fsa-reader'
-import { RegistryDialog } from './RegistryDialog'
 
 export function Toolbar() {
   const addBundle = useBundleStore((s) => s.addBundle)
@@ -13,8 +11,6 @@ export function Toolbar() {
   const clearAll = useBundleStore((s) => s.clearAll)
   const bundleCount = useBundleStore((s) => s.bundles.size)
   const [error, setError] = useState<string | null>(null)
-  const [showRegistry, setShowRegistry] = useState(false)
-  const isRegistryConnected = useRegistryStore((s) => s.isConnected)
 
   const uploadRef = useRef<HTMLInputElement>(null)
   const folderRef = useRef<HTMLInputElement>(null)
@@ -127,17 +123,6 @@ export function Toolbar() {
           onChange={handleUpload}
         />
 
-        <button
-          onClick={() => setShowRegistry(true)}
-          className={`rounded px-3 py-1.5 text-sm font-medium transition-colors ${
-            isRegistryConnected
-              ? 'bg-indigo-700 hover:bg-indigo-600'
-              : 'bg-gray-700 hover:bg-gray-600'
-          }`}
-        >
-          {isRegistryConnected ? 'Registry \u2713' : 'Registry'}
-        </button>
-
         {bundleCount > 0 && (
           <button
             onClick={clearAll}
@@ -168,8 +153,6 @@ export function Toolbar() {
           {error}
         </div>
       )}
-
-      <RegistryDialog open={showRegistry} onClose={() => setShowRegistry(false)} />
     </div>
   )
 }
