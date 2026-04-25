@@ -1,6 +1,6 @@
 # ClipRoot Protocol (CRP) Specification
 
-**Version:** 0.0.3
+**Version:** 0.0.4
 **Status:** Draft
 
 ---
@@ -208,7 +208,7 @@ A CRP bundle is a JSON object with the following top-level shape:
 
 ```json
 {
-  "protocolVersion": "0.0.3",
+  "protocolVersion": "0.0.4",
   "bundleType": "document",
   "createdAt": "2026-03-07T20:30:00Z",
   "project": { ... },
@@ -230,7 +230,7 @@ A CRP bundle is a JSON object with the following top-level shape:
 
 All array fields default to empty arrays. `project`, `document`, `registry` are optional objects.
 
-The canonical schema is defined in `schema/crp-v0.0.3.schema.json` using JSON Schema 2020-12. Implementations must validate bundles against this schema.
+The canonical schema is defined in `schema/crp-v0.0.4.schema.json` using JSON Schema 2020-12. Implementations must validate bundles against this schema.
 
 ---
 
@@ -385,6 +385,32 @@ Location within an HTML/XML document:
 
 At least one property must be present. All properties are optional individually.
 
+### Markdown Selector
+
+Location within a Markdown document. Markdown has no single stable addressing scheme, so the selector exposes several redundant anchors — analogous to the DOM selector — and implementations should populate as many as are available:
+
+```json
+{
+  "markdown": {
+    "headingSlug": "markdown-selector",
+    "headingPath": ["Selectors", "Markdown Selector"],
+    "blockId": "block-abc123",
+    "managedBlockField": "intro",
+    "lineRange": { "start": 342, "end": 358 },
+    "provenanceAttribute": "data-crp-hash"
+  }
+}
+```
+
+- `headingSlug` — GitHub-style slug of the nearest enclosing heading (e.g. `markdown-selector`). Re-anchors the clip if line numbers shift but the heading is stable.
+- `headingPath` — ordered list of heading titles from document root to the nearest enclosing heading. Survives heading renames better than slugs when only one level changes, and disambiguates duplicate headings in different sections.
+- `blockId` — block reference identifier (e.g. Obsidian-style `^block-abc123`) when the source Markdown uses inline block IDs.
+- `managedBlockField` — name of the enclosing `cliproot:begin field="<name>"` managed block, when the clip lies inside one (see [Managed Blocks](#managed-blocks)).
+- `lineRange` — 1-indexed inclusive line range within the raw Markdown bytes. Precise but brittle under edits; include alongside other anchors, not in isolation.
+- `provenanceAttribute` — name of the HTML attribute carrying the clip hash when the clip is anchored by an inline `<span data-crp-hash="…">` (see [Markdown Transport](#markdown-transport)). Defaults to `data-crp-hash`.
+
+At least one property must be present. All properties are optional individually. A `textQuote` selector should almost always accompany a `markdown` selector, since none of the above anchors are bit-stable against routine editing.
+
 ### Editor Path Selector
 
 Path within a structured editor (e.g., ProseMirror/Tiptap node path):
@@ -449,12 +475,65 @@ IDs are scoped to the bundle. Cross-bundle references use content hashes (for cl
 
 ---
 
+## Markdown Transport
+
+CRP bundles and clip references can be embedded inline in Markdown documents. This enables provenance data to travel with prose through clipboards, editors, and static-site pipelines without requiring a separate bundle file.
+
+Two embed shapes coexist. Each has a default use; both are valid in any document.
+
+| Shape | Embed form | Default use |
+|---|---|---|
+| **Hash-only** | `<span data-crp-hash="sha256-<hash>"></span>` | Content under cliproot's control (e.g. a managed knowledge base). The backing store is authoritative; the Markdown indexes into it by hash. |
+| **Full bundle** | `<div style="display:none" data-crp-bundle="<escaped JSON>"></div>` | Exports, one-off shared documents, and clipboard output. The Markdown *is* the data and must be self-sufficient when it leaves the authoring environment. |
+
+The `data-crp-hash` attribute is the same attribute already named by the DOM selector's `provenanceAttribute` field (see [Selectors](#dom-selector)). Reusing it for inline Markdown is deliberate: a hash embedded in rendered HTML and a hash embedded in source Markdown refer to the same clip in the same way.
+
+### Anchoring Clips in Markdown Sources
+
+When a clip is *captured from* a Markdown document (as opposed to *embedded in* one), the capture should record a [Markdown Selector](#markdown-selector) describing where in the source the clip came from — heading slug, heading path, block ID, managed-block field name, and/or line range. This mirrors how HTML captures populate a DOM selector: Markdown has no single authoritative addressing scheme, so selectors are redundant by design, and a `textQuote` selector should always accompany the structural anchors to allow re-anchoring when the document changes.
+
+### Clipboard Default
+
+When CRP is written to the system clipboard, the default shape is **full bundle**. This ensures a paste into a reader without network access or a cliproot-aware store still carries complete provenance.
+
+### Managed Blocks
+
+Regions of a Markdown document that are regenerated by tooling are delimited by HTML comment markers:
+
+```
+<!-- cliproot:begin field="<name>" -->
+…
+<!-- cliproot:end field="<name>" -->
+```
+
+`<name>` identifies the region. Tooling replaces content between matching markers; content outside is preserved. Marker comments are HTML comments so they survive most Markdown processors.
+
+### Escaping
+
+The JSON bundle payload embedded in `data-crp-bundle` must be HTML-attribute-escaped: `&`, `<`, `>`, `"`, and `'` are replaced with their named or numeric HTML entities. Decoders reverse the escape before JSON-parsing.
+
+### Frontmatter
+
+YAML frontmatter is reserved for document-identity fields (such as a stable UUID, a content hash of the document itself, canonical keys, and article type). Provenance records belong in `data-crp-hash` spans or `data-crp-bundle` divs, not in frontmatter.
+
+### Round-Trip Hazards
+
+Markdown processors and editors vary in how they handle inline HTML. Implementations should be aware of:
+
+- **Comment-stripping converters.** Some pipelines (e.g. pandoc `--strip-comments`) remove HTML comments, which destroys managed-block markers. Round-trip workflows must preserve comments or re-anchor by other means.
+- **Self-closing-span normalization.** Some Markdown-AST libraries (e.g. remark under certain configurations) rewrite `<span …></span>` into a self-closing or otherwise altered form. Use an explicit open/close pair and verify that the chosen toolchain preserves empty spans.
+- **Editor plugins.** Rich-text editors (e.g. Obsidian with community plugins) may reflow, merge, or strip inline HTML. Authors should confirm that provenance spans survive a save/reload cycle in their editor of choice.
+
+When in doubt, validate by round-tripping a document through the full authoring pipeline and checking that every `data-crp-hash` and `data-crp-bundle` attribute is preserved verbatim.
+
+---
+
 ## Canonical Schema
 
 The authoritative protocol definition is the JSON Schema file:
 
 ```
-schema/crp-v0.0.3.schema.json
+schema/crp-v0.0.4.schema.json
 ```
 
 This schema uses JSON Schema 2020-12 and defines all entity structures, field constraints, enumerations, and required fields. Implementations should validate bundles against this schema to ensure conformance.

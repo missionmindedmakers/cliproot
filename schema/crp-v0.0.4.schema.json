@@ -1,0 +1,633 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cliproot.com/schema/crp-v0.0.4.schema.json",
+  "title": "ClipRoot Protocol (CRP) v0.0.4",
+  "description": "Protocol bundle schema for project-scoped provenance records, generalized edges, and content-addressed artifacts. v0.0.4 adds the Markdown selector for anchoring clips within Markdown source documents.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "protocolVersion": {
+      "const": "0.0.4"
+    },
+    "bundleType": {
+      "type": "string",
+      "enum": ["document", "clipboard", "reuse-event", "derivation", "provenance-export"]
+    },
+    "createdAt": {
+      "$ref": "#/$defs/dateTime"
+    },
+    "project": {
+      "$ref": "#/$defs/project"
+    },
+    "document": {
+      "$ref": "#/$defs/document"
+    },
+    "agents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/agent"
+      },
+      "default": []
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/sourceRecord"
+      },
+      "default": []
+    },
+    "clips": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/clip"
+      },
+      "default": []
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/artifact"
+      },
+      "default": []
+    },
+    "clipArtifactRefs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/clipArtifactRef"
+      },
+      "default": []
+    },
+    "activities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/activity"
+      },
+      "default": []
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/edge"
+      },
+      "default": []
+    },
+    "reuseEvents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/reuseEvent"
+      },
+      "default": []
+    },
+    "signatures": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/signature"
+      },
+      "default": []
+    },
+    "registry": {
+      "$ref": "#/$defs/registryRef"
+    }
+  },
+  "required": ["protocolVersion", "bundleType", "createdAt"],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9._:-]+$"
+    },
+    "dateTime": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "uri": {
+      "type": "string",
+      "format": "uri"
+    },
+    "sha256Base64Url": {
+      "type": "string",
+      "pattern": "^sha256-[A-Za-z0-9_-]{43,}$"
+    },
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "uri": {
+          "$ref": "#/$defs/uri"
+        },
+        "title": {
+          "type": "string"
+        },
+        "canonicalHash": {
+          "$ref": "#/$defs/sha256Base64Url"
+        }
+      },
+      "required": ["id"]
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "agentType": {
+          "type": "string",
+          "enum": ["person", "organization", "model", "service", "system"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "uri": {
+          "$ref": "#/$defs/uri"
+        }
+      },
+      "required": ["id", "agentType"]
+    },
+    "sourceRecord": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceType": {
+          "type": "string",
+          "enum": ["human-authored", "ai-generated", "ai-assisted", "external-quoted", "unknown"]
+        },
+        "digitalSourceType": {
+          "$ref": "#/$defs/uri"
+        },
+        "title": {
+          "type": "string"
+        },
+        "sourceUri": {
+          "$ref": "#/$defs/uri"
+        },
+        "authorAgentId": {
+          "$ref": "#/$defs/id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      },
+      "required": ["id", "sourceType"]
+    },
+    "textPositionSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "start": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["start", "end"]
+    },
+    "textQuoteSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "exact": {
+          "type": "string"
+        },
+        "prefix": {
+          "type": "string"
+        },
+        "suffix": {
+          "type": "string"
+        }
+      },
+      "required": ["exact"]
+    },
+    "domSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provenanceAttribute": {
+          "type": "string"
+        },
+        "elementId": {
+          "type": "string"
+        },
+        "cssSelector": {
+          "type": "string"
+        },
+        "classPath": {
+          "type": "string"
+        }
+      },
+      "minProperties": 1
+    },
+    "markdownSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "headingSlug": {
+          "type": "string",
+          "description": "GitHub-style slug of the nearest enclosing heading."
+        },
+        "headingPath": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Ordered list of heading titles from document root to the nearest enclosing heading."
+        },
+        "blockId": {
+          "type": "string",
+          "description": "Inline block reference identifier (e.g. Obsidian-style block ID without the leading caret)."
+        },
+        "managedBlockField": {
+          "type": "string",
+          "description": "Name of the enclosing cliproot:begin field=\"<name>\" managed block, when the clip lies inside one."
+        },
+        "lineRange": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "start": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "end": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": ["start", "end"],
+          "description": "1-indexed inclusive line range within the raw Markdown bytes."
+        },
+        "provenanceAttribute": {
+          "type": "string",
+          "description": "Name of the HTML attribute carrying the clip hash on an inline span (default data-crp-hash)."
+        }
+      },
+      "minProperties": 1
+    },
+    "mediaTimeSelector": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "startMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "endMs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "track": {
+          "type": "string",
+          "enum": ["audio", "video"]
+        },
+        "transcriptCueId": {
+          "type": "string"
+        }
+      },
+      "required": ["startMs", "endMs"]
+    },
+    "registryRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "uri": {
+          "$ref": "#/$defs/uri"
+        },
+        "bundleId": {
+          "type": "string"
+        }
+      },
+      "required": ["uri"]
+    },
+    "clip": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clipHash": {
+          "$ref": "#/$defs/sha256Base64Url"
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "projectId": {
+          "$ref": "#/$defs/id"
+        },
+        "documentId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "selectors": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "textPosition": {
+              "$ref": "#/$defs/textPositionSelector"
+            },
+            "textQuote": {
+              "$ref": "#/$defs/textQuoteSelector"
+            },
+            "editorPath": {
+              "type": "string"
+            },
+            "dom": {
+              "$ref": "#/$defs/domSelector"
+            },
+            "markdown": {
+              "$ref": "#/$defs/markdownSelector"
+            },
+            "mediaTime": {
+              "$ref": "#/$defs/mediaTimeSelector"
+            },
+            "parentClipHash": {
+              "$ref": "#/$defs/sha256Base64Url"
+            }
+          },
+          "minProperties": 1
+        },
+        "content": {
+          "type": "string"
+        },
+        "textHash": {
+          "$ref": "#/$defs/sha256Base64Url"
+        },
+        "createdByActivityId": {
+          "$ref": "#/$defs/id"
+        }
+      },
+      "required": ["clipHash", "sourceRefs", "textHash"]
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "artifactHash": {
+          "$ref": "#/$defs/sha256Base64Url"
+        },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "projectId": {
+          "$ref": "#/$defs/id"
+        },
+        "artifactType": {
+          "type": "string",
+          "enum": [
+            "markdown",
+            "prompt",
+            "session",
+            "config",
+            "diagram",
+            "text",
+            "json",
+            "binary",
+            "unknown"
+          ]
+        },
+        "fileName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mimeType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "byteSize": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "contentBase64": {
+          "type": "string"
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      },
+      "required": ["artifactHash", "artifactType", "fileName", "mimeType", "byteSize"]
+    },
+    "clipArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clipHash": {
+          "$ref": "#/$defs/sha256Base64Url"
+        },
+        "artifactHash": {
+          "$ref": "#/$defs/sha256Base64Url"
+        },
+        "relationship": {
+          "type": "string",
+          "enum": ["generated_from", "cited_in", "prompt_for", "attached_to", "unknown"]
+        }
+      },
+      "required": ["clipHash", "artifactHash", "relationship"]
+    },
+    "activity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "projectId": {
+          "$ref": "#/$defs/id"
+        },
+        "activityType": {
+          "type": "string",
+          "enum": [
+            "create",
+            "paste",
+            "import",
+            "edit",
+            "ai_generate",
+            "reuse_detected",
+            "reuse_notified",
+            "copy",
+            "derive",
+            "research",
+            "plan",
+            "review"
+          ]
+        },
+        "agentId": {
+          "$ref": "#/$defs/id"
+        },
+        "prompt": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object"
+        },
+        "usedSourceRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "generatedClipRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "uniqueItems": true
+        },
+        "createdAt": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "endedAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      },
+      "required": ["id", "activityType", "createdAt"]
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "edgeType": {
+          "type": "string",
+          "enum": [
+            "wasDerivedFrom",
+            "wasGeneratedBy",
+            "used",
+            "wasAttributedTo",
+            "wasAssociatedWith",
+            "actedOnBehalfOf"
+          ]
+        },
+        "subjectRef": {
+          "$ref": "#/$defs/id"
+        },
+        "objectRef": {
+          "$ref": "#/$defs/id"
+        },
+        "transformationType": {
+          "type": "string",
+          "enum": [
+            "verbatim",
+            "quote",
+            "summary",
+            "paraphrase",
+            "translate",
+            "combine",
+            "edit",
+            "ai_generate",
+            "unknown"
+          ]
+        },
+        "agentId": {
+          "$ref": "#/$defs/id"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "createdAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      },
+      "required": ["id", "edgeType", "subjectRef", "objectRef", "createdAt"]
+    },
+    "reuseEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["detected", "notified", "acknowledged", "rejected"]
+        },
+        "sourceDocumentId": {
+          "$ref": "#/$defs/id"
+        },
+        "destinationDocumentId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceRef": {
+          "$ref": "#/$defs/id"
+        },
+        "detectedByActivityId": {
+          "$ref": "#/$defs/id"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/dateTime"
+        },
+        "updatedAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      },
+      "required": ["id", "status", "sourceRef", "createdAt"]
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "alg": {
+          "type": "string",
+          "enum": ["Ed25519", "ES256", "RS256"]
+        },
+        "kid": {
+          "type": "string"
+        },
+        "jws": {
+          "type": "string"
+        },
+        "createdAt": {
+          "$ref": "#/$defs/dateTime"
+        }
+      },
+      "required": ["id", "alg", "jws"]
+    }
+  }
+}
